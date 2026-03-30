@@ -1,0 +1,6 @@
+.qodo/
+.cursor/
+.vscode/
+*.log
+.DS_Store
+Thumbs.db
