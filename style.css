@@ -213,9 +213,11 @@ img {
 
 .loader-text {
   color: var(--text-secondary);
-  font-size: 0.85rem;
-  font-family: var(--font-mono);
-  letter-spacing: 2px;
+  font-size: 1.05rem;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  letter-spacing: 3px;
+  text-transform: uppercase;
 }
 
 /* =====================
@@ -1299,6 +1301,59 @@ img {
   font-size: 0.76rem;
   color: var(--text-secondary);
   font-family: var(--font-mono);
+}
+
+.project-link-secondary {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color);
+}
+
+.project-link-secondary:hover {
+  border-color: var(--accent-1);
+}
+
+/* Project Action Buttons */
+.project-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.project-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  transition: var(--transition);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.project-btn-primary {
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: 0 3px 16px rgba(99,102,241,0.3);
+}
+
+.project-btn-primary:hover {
+  box-shadow: 0 6px 28px rgba(99,102,241,0.5);
+  transform: translateY(-2px);
+}
+
+.project-btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.project-btn-ghost:hover {
+  border-color: var(--accent-1);
+  color: var(--text-primary);
+  transform: translateY(-2px);
 }
 
 .projects-cta {
