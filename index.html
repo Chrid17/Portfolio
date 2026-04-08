@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Christian Bwendo — Software Developer specializing in Flutter, full-stack web development, and UI/UX design. Based in Windhoek, Namibia.">
+    <meta name="keywords" content="Christian Bwendo, Software Developer, Flutter Developer, Full-Stack Developer, Windhoek, Namibia, Portfolio">
+    <meta name="author" content="Christian Bwendo">
+    <meta property="og:title" content="Christian Bwendo | Software Developer">
+    <meta property="og:description" content="Passionate Software Developer dedicated to innovation, creativity, and developing impactful solutions.">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#0a0a1a">
+    <meta property="og:image" content="https://chrid17.github.io/portfolio/og-image.png">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>Christian Bwendo | Software Developer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/devicon.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Christian Bwendo",
+      "jobTitle": "Software Developer",
+      "url": "https://chrid17.github.io",
+      "sameAs": [
+        "https://github.com/Chrid17",
+        "https://www.linkedin.com/in/christian-bwendo-7122b7263"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Windhoek",
+        "addressCountry": "NA"
+      },
+      "email": "christianbwendo@gmail.com",
+      "knowsAbout": ["Flutter", "Dart", "JavaScript", "HTML", "CSS", "Java", "PHP", "UI/UX Design", "Firebase", "Supabase"]
+    }
+    </script>
+</head>
+<body>
+    <!-- Cursor Glow Effect -->
+    <div class="cursor-glow" id="cursorGlow"></div>
+
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="bg-grid"></div>
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div class="loader" id="loader">
+        <div class="loader-content">
+            <div class="loader-logo">
+                <span class="loader-bracket">{</span>
+                <span class="loader-name">CB</span>
+                <span class="loader-bracket">}</span>
+            </div>
+            <div class="loader-bar">
+                <div class="loader-bar-fill"></div>
+            </div>
+            <p class="loader-text">Loading portfolio...</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#hero" class="nav-logo" id="navLogo">
+                <span class="logo-bracket">{</span>
+                <span class="logo-text">CB</span>
+                <span class="logo-bracket">}</span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="#about" class="nav-link" data-section="about">About</a>
+                <a href="#skills" class="nav-link" data-section="skills">Skills</a>
+                <a href="#experience" class="nav-link" data-section="experience">Experience</a>
+                <a href="#projects" class="nav-link" data-section="projects">Projects</a>
+                <a href="#education" class="nav-link" data-section="education">Education</a>
+                <a href="#contact" class="nav-link" data-section="contact">Contact</a>
+            </div>
+            <a href="#contact" class="nav-cta" id="navCta">Let's Talk</a>
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Scroll Progress Bar -->
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-links">
+            <a href="#about" class="mobile-link">About</a>
+            <a href="#skills" class="mobile-link">Skills</a>
+            <a href="#experience" class="mobile-link">Experience</a>
+            <a href="#projects" class="mobile-link">Projects</a>
+            <a href="#education" class="mobile-link">Education</a>
+            <a href="#contact" class="mobile-link">Contact</a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge animate-in">
+                    <span class="status-dot"></span>
+                    Available for opportunities
+                </div>
+                <h1 class="hero-title animate-in">
+                    <span class="hero-greeting">Hello, I'm</span>
+                    <span class="hero-name">Christian<br>Bwendo</span>
+                </h1>
+                <div class="hero-role animate-in">
+                    <span class="role-prefix">&gt;</span>
+                    <span class="typewriter" id="typewriter"></span>
+                    <span class="cursor-blink">|</span>
+                </div>
+                <p class="hero-description animate-in">
+                    Passionate Software Developer dedicated to innovation, creativity, 
+                    and developing solutions that enhance everyday life. Building impactful, 
+                    efficient, and user-centered technologies.
+                </p>
+                <div class="hero-actions animate-in">
+                    <a href="#projects" class="btn btn-primary" id="heroViewWork">
+                        <span>View My Work</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="#contact" class="btn btn-secondary" id="heroContactMe">
+                        <span>Contact Me</span>
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                    <a href="CV%202026%20Updated%20(2).pdf" download="Christian_Bwendo_CV.pdf" class="btn btn-outline" id="heroDownloadCV">
+                        <span>Download CV</span>
+                        <i class="fas fa-download"></i>
+                    </a>
+                </div>
+                <div class="hero-stats animate-in">
+                    <div class="stat" id="statProjects">
+                        <span class="stat-number" data-count="4">0</span>
+                        <span class="stat-label">Projects</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat" id="statExperience">
+                        <span class="stat-number" data-count="4">0</span>
+                        <span class="stat-label">Years Coding</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat" id="statTech">
+                        <span class="stat-number" data-count="8">0</span>
+                        <span class="stat-label">Technologies</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual animate-in">
+                <div class="hero-image-wrapper">
+                    <div class="hero-image-ring"></div>
+                    <div class="hero-image-ring hero-image-ring-2"></div>
+                    <div class="hero-avatar">
+                        <div class="avatar-placeholder">
+                            <span class="avatar-initials">CB</span>
+                        </div>
+                    </div>
+                    <!-- Floating Tech Icons -->
+                    <div class="floating-icon fi-1" title="Flutter"><i class="devicon-flutter-plain colored"></i></div>
+                    <div class="floating-icon fi-2" title="JavaScript"><i class="devicon-javascript-plain colored"></i></div>
+                    <div class="floating-icon fi-3" title="HTML5"><i class="devicon-html5-plain colored"></i></div>
+                    <div class="floating-icon fi-4" title="CSS3"><i class="devicon-css3-plain colored"></i></div>
+                    <div class="floating-icon fi-5" title="Java"><i class="devicon-java-plain colored"></i></div>
+                    <div class="floating-icon fi-6" title="GitHub"><i class="devicon-github-original" style="color: #fff;"></i></div>
+                    <div class="floating-icon fi-7" title="Figma"><i class="devicon-figma-plain colored"></i></div>
+                    <div class="floating-icon fi-8" title="Dart"><i class="devicon-dart-plain colored"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator" id="scrollIndicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow">
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="section" id="about">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-tag">&lt;about&gt;</span>
+                <h2 class="section-title">About <span class="text-gradient">Me</span></h2>
+                <p class="section-subtitle">Get to know who I am and what drives me</p>
+            </div>
+            <div class="about-grid">
+                <div class="about-text reveal">
+                    <div class="about-card glass-card">
+                        <h3 class="about-heading">Who I Am</h3>
+                        <p>I'm a <strong>Software Developer</strong> based in Windhoek, Namibia, awaiting my graduation in May 2026 with a 
+                        <strong>Bachelor of Computer Science</strong> from the Namibia University of Science & Technology. 
+                        I specialize in building cross-platform applications, full-stack web solutions, and crafting 
+                        intuitive user interfaces.</p>
+                        <p>With hands-on experience at <strong>Synergy</strong> as a Software Developer Intern, I've 
+                        contributed to real-world projects including UI design, application testing, API integrations, 
+                        and developing tools that streamline business processes.</p>
+                        <p>I'm committed to <strong>excellence, teamwork, and continuous learning</strong>, with a 
+                        strong drive to build technologies that contribute to positive change and digital growth.</p>
+                    </div>
+                </div>
+                <div class="about-details reveal">
+                    <div class="detail-card glass-card">
+                        <div class="detail-icon"><i class="fas fa-user"></i></div>
+                        <div class="detail-info">
+                            <span class="detail-label">Name</span>
+                            <span class="detail-value">Christian Bwendo</span>
+                        </div>
+                    </div>
+                    <div class="detail-card glass-card">
+                        <div class="detail-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <div class="detail-info">
+                            <span class="detail-label">Location</span>
+                            <span class="detail-value">Eros, Akwamaryn, Windhoek</span>
+                        </div>
+                    </div>
+                    <div class="detail-card glass-card">
+                        <div class="detail-icon"><i class="fas fa-envelope"></i></div>
+                        <div class="detail-info">
+                            <span class="detail-label">Email</span>
+                            <span class="detail-value">christianbwendo@gmail.com</span>
+                        </div>
+                    </div>
+                    <div class="detail-card glass-card">
+                        <div class="detail-icon"><i class="fas fa-phone"></i></div>
+                        <div class="detail-info">
+                            <span class="detail-label">Phone</span>
+                            <span class="detail-value">+264 81 799 9667</span>
+                        </div>
+                    </div>
+                    <div class="detail-card glass-card">
+                        <div class="detail-icon"><i class="fas fa-graduation-cap"></i></div>
+                        <div class="detail-info">
+                            <span class="detail-label">Education</span>
+                            <span class="detail-value">BSc Computer Science — NUST</span>
+                        </div>
+                    </div>
+                    <div class="detail-card glass-card">
+                        <div class="detail-icon"><i class="fas fa-language"></i></div>
+                        <div class="detail-info">
+                            <span class="detail-label">Languages</span>
+                            <span class="detail-value">English, Silozi</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section class="section section-alt" id="skills">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-tag">&lt;skills&gt;</span>
+                <h2 class="section-title">My <span class="text-gradient">Skills</span></h2>
+                <p class="section-subtitle">Technologies and tools I work with</p>
+            </div>
+            <div class="skills-grid">
+                <!-- Development -->
+                <div class="skill-category reveal glass-card">
+                    <div class="skill-category-header">
+                        <div class="skill-category-icon"><i class="fas fa-code"></i></div>
+                        <h3>Development</h3>
+                    </div>
+                    <div class="skill-tags">
+                        <div class="skill-tag">
+                            <i class="devicon-html5-plain colored"></i>
+                            <span>HTML5</span>
+                            <div class="skill-level" data-level="95"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="devicon-css3-plain colored"></i>
+                            <span>CSS3</span>
+                            <div class="skill-level" data-level="90"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="devicon-javascript-plain colored"></i>
+                            <span>JavaScript</span>
+                            <div class="skill-level" data-level="85"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="devicon-php-plain colored"></i>
+                            <span>PHP</span>
+                            <div class="skill-level" data-level="75"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="devicon-java-plain colored"></i>
+                            <span>Java</span>
+                            <div class="skill-level" data-level="80"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="devicon-flutter-plain colored"></i>
+                            <span>Dart / Flutter</span>
+                            <div class="skill-level" data-level="90"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Tools & Platforms -->
+                <div class="skill-category reveal glass-card">
+                    <div class="skill-category-header">
+                        <div class="skill-category-icon"><i class="fas fa-tools"></i></div>
+                        <h3>Tools & Platforms</h3>
+                    </div>
+                    <div class="skill-tags">
+                        <div class="skill-tag">
+                            <i class="devicon-github-original"></i>
+                            <span>GitHub</span>
+                            <div class="skill-level" data-level="90"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="devicon-mysql-plain colored"></i>
+                            <span>MySQL</span>
+                            <div class="skill-level" data-level="80"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="devicon-firebase-plain colored"></i>
+                            <span>Firebase</span>
+                            <div class="skill-level" data-level="85"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="devicon-supabase-plain colored"></i>
+                            <span>Supabase</span>
+                            <div class="skill-level" data-level="85"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fas fa-cog"></i>
+                            <span>Odoo ERP</span>
+                            <div class="skill-level" data-level="75"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Design -->
+                <div class="skill-category reveal glass-card">
+                    <div class="skill-category-header">
+                        <div class="skill-category-icon"><i class="fas fa-palette"></i></div>
+                        <h3>Design</h3>
+                    </div>
+                    <div class="skill-tags">
+                        <div class="skill-tag">
+                            <i class="devicon-figma-plain colored"></i>
+                            <span>Figma</span>
+                            <div class="skill-level" data-level="90"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fas fa-paint-brush"></i>
+                            <span>Canva</span>
+                            <div class="skill-level" data-level="85"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fas fa-image"></i>
+                            <span>Photoshop</span>
+                            <div class="skill-level" data-level="70"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fas fa-pen-nib"></i>
+                            <span>UI/UX Design</span>
+                            <div class="skill-level" data-level="85"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Soft Skills -->
+                <div class="skill-category reveal glass-card">
+                    <div class="skill-category-header">
+                        <div class="skill-category-icon"><i class="fas fa-brain"></i></div>
+                        <h3>Soft Skills</h3>
+                    </div>
+                    <div class="skill-tags">
+                        <div class="skill-tag">
+                            <i class="fas fa-puzzle-piece"></i>
+                            <span>Problem Solving</span>
+                            <div class="skill-level" data-level="90"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fas fa-tasks"></i>
+                            <span>Multitasking</span>
+                            <div class="skill-level" data-level="85"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fas fa-comments"></i>
+                            <span>Communication</span>
+                            <div class="skill-level" data-level="90"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fas fa-users"></i>
+                            <span>Teamwork</span>
+                            <div class="skill-level" data-level="95"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fas fa-wrench"></i>
+                            <span>IT Troubleshooting</span>
+                            <div class="skill-level" data-level="80"></div>
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fas fa-file-word"></i>
+                            <span>Microsoft Office</span>
+                            <div class="skill-level" data-level="90"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Section -->
+    <section class="section" id="experience">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-tag">&lt;experience&gt;</span>
+                <h2 class="section-title">Work <span class="text-gradient">Experience</span></h2>
+                <p class="section-subtitle">My professional journey and contributions</p>
+            </div>
+            <div class="timeline">
+                <!-- Synergy Internship -->
+                <div class="timeline-item reveal" id="expSynergy">
+                    <div class="timeline-marker">
+                        <div class="timeline-dot"></div>
+                    </div>
+                    <div class="timeline-content glass-card">
+                        <div class="timeline-header">
+                            <div class="timeline-badge">Internship</div>
+                            <span class="timeline-date"><i class="far fa-calendar-alt"></i> June 2025 — March 2026</span>
+                        </div>
+                        <h3 class="timeline-title">Software Developer Intern</h3>
+                        <h4 class="timeline-company">Synergy</h4>
+                        <ul class="timeline-details">
+                            <li>Designed UI interfaces for a file converter tool and the Kwiq Stock recording application</li>
+                            <li>Developed and integrated a volume calculator tool for Namtrans Website</li>
+                            <li>Collaborated with the team to support decision-making and problem-solving processes</li>
+                            <li>Performed application testing, data processing, and analysis</li>
+                            <li>Developed a remote clock-in app with photo verification, geolocation, and API integration</li>
+                        </ul>
+                        <div class="timeline-tech">
+                            <span>Flutter</span>
+                            <span>Dart</span>
+                            <span>Supabase</span>
+                            <span>Figma</span>
+                            <span>Odoo</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Flutter Developer -->
+                <div class="timeline-item reveal" id="expFlutter">
+                    <div class="timeline-marker">
+                        <div class="timeline-dot"></div>
+                    </div>
+                    <div class="timeline-content glass-card">
+                        <div class="timeline-header">
+                            <div class="timeline-badge badge-freelance">Freelance</div>
+                            <span class="timeline-date"><i class="far fa-calendar-alt"></i> December 2024 — Present</span>
+                        </div>
+                        <h3 class="timeline-title">Flutter Developer</h3>
+                        <h4 class="timeline-company">Freelancing</h4>
+                        <ul class="timeline-details">
+                            <li>Specialize in developing cross-platform applications using Flutter</li>
+                            <li>Deliver high-quality, responsive, and user-friendly app interfaces</li>
+                            <li>Build custom widgets and implement complex UI designs</li>
+                        </ul>
+                        <div class="timeline-tech">
+                            <span>Flutter</span>
+                            <span>Dart</span>
+                            <span>Firebase</span>
+                            <span>REST APIs</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Freelancing Designer -->
+                <div class="timeline-item reveal" id="expDesigner">
+                    <div class="timeline-marker">
+                        <div class="timeline-dot"></div>
+                    </div>
+                    <div class="timeline-content glass-card">
+                        <div class="timeline-header">
+                            <div class="timeline-badge badge-freelance">Freelance</div>
+                            <span class="timeline-date"><i class="far fa-calendar-alt"></i> March 2022 — Present</span>
+                        </div>
+                        <h3 class="timeline-title">Freelancing Designer</h3>
+                        <h4 class="timeline-company">Self-employed</h4>
+                        <ul class="timeline-details">
+                            <li>Engaged in a variety of design projects, showcasing creativity and adaptability</li>
+                            <li>Crafted modern, intuitive user interfaces for web and mobile applications</li>
+                            <li>Collaborated with clients to bring their vision to life through thoughtful design</li>
+                        </ul>
+                        <div class="timeline-tech">
+                            <span>Figma</span>
+                            <span>Canva</span>
+                            <span>Photoshop</span>
+                            <span>UI/UX</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section class="section section-alt" id="projects">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-tag">&lt;projects&gt;</span>
+                <h2 class="section-title">Featured <span class="text-gradient">Projects</span></h2>
+                <p class="section-subtitle">A selection of my recent work</p>
+            </div>
+            <div class="projects-grid">
+                <!-- Project 1 -->
+                <div class="project-card reveal glass-card" id="projectCVCorrector">
+                    <div class="project-image">
+                        <div class="project-image-placeholder">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="project-overlay">
+                            <a href="https://chrid17.github.io/cv_corrector-app/" target="_blank" rel="noopener noreferrer" class="project-link" aria-label="Live Demo"><i class="fas fa-external-link-alt"></i></a>
+                            <a href="https://github.com/Chrid17/cv_corrector-app" target="_blank" rel="noopener noreferrer" class="project-link project-link-secondary" aria-label="View on GitHub"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <div class="project-category">Full-Stack App</div>
+                        <h3 class="project-title">CV Corrector App</h3>
+                        <p class="project-description">An intelligent application that analyzes and provides correction suggestions for CVs and resumes, helping users improve their job application documents.</p>
+                        <div class="project-tech">
+                            <span>Flutter</span>
+                            <span>Dart</span>
+                            <span>AI/ML</span>
+                        </div>
+                        <div class="project-actions">
+                            <a href="https://chrid17.github.io/cv_corrector-app/" target="_blank" rel="noopener noreferrer" class="project-btn project-btn-primary"><i class="fas fa-play"></i> Live Demo</a>
+                            <a href="https://github.com/Chrid17/cv_corrector-app" target="_blank" rel="noopener noreferrer" class="project-btn project-btn-ghost"><i class="fab fa-github"></i> Code</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Project 2 -->
+                <div class="project-card reveal glass-card" id="projectTodo">
+                    <div class="project-image">
+                        <div class="project-image-placeholder" style="--accent: #10b981;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="project-overlay">
+                            <a href="https://chrid17.github.io/myTodo-app/" target="_blank" rel="noopener noreferrer" class="project-link" aria-label="Live Demo"><i class="fas fa-external-link-alt"></i></a>
+                            <a href="https://github.com/Chrid17/myTodo-app" target="_blank" rel="noopener noreferrer" class="project-link project-link-secondary" aria-label="View on GitHub"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <div class="project-category">Mobile App</div>
+                        <h3 class="project-title">MyTodo App</h3>
+                        <p class="project-description">A clean, feature-rich task management application with intuitive UI, categorization, and productivity-boosting features for everyday use.</p>
+                        <div class="project-tech">
+                            <span>Flutter</span>
+                            <span>Dart</span>
+                            <span>SQLite</span>
+                        </div>
+                        <div class="project-actions">
+                            <a href="https://chrid17.github.io/myTodo-app/" target="_blank" rel="noopener noreferrer" class="project-btn project-btn-primary"><i class="fas fa-play"></i> Live Demo</a>
+                            <a href="https://github.com/Chrid17/myTodo-app" target="_blank" rel="noopener noreferrer" class="project-btn project-btn-ghost"><i class="fab fa-github"></i> Code</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Project 3 -->
+                <div class="project-card reveal glass-card" id="projectBarbershop">
+                    <div class="project-image">
+                        <div class="project-image-placeholder" style="--accent: #f59e0b;">
+                            <i class="fas fa-cut"></i>
+                        </div>
+                        <div class="project-overlay">
+                            <a href="https://chrid17.github.io/Elite-Barbershop-Website/" target="_blank" rel="noopener noreferrer" class="project-link" aria-label="Live Demo"><i class="fas fa-external-link-alt"></i></a>
+                            <a href="https://github.com/Chrid17/Elite-Barbershop-Website" target="_blank" rel="noopener noreferrer" class="project-link project-link-secondary" aria-label="View on GitHub"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <div class="project-category">Web Development</div>
+                        <h3 class="project-title">Elite Barbershop Website</h3>
+                        <p class="project-description">A modern, responsive website for a barbershop business featuring service listings, booking capabilities, and a sleek professional design.</p>
+                        <div class="project-tech">
+                            <span>HTML</span>
+                            <span>CSS</span>
+                            <span>JavaScript</span>
+                        </div>
+                        <div class="project-actions">
+                            <a href="https://chrid17.github.io/Elite-Barbershop-Website/" target="_blank" rel="noopener noreferrer" class="project-btn project-btn-primary"><i class="fas fa-play"></i> Live Demo</a>
+                            <a href="https://github.com/Chrid17/Elite-Barbershop-Website" target="_blank" rel="noopener noreferrer" class="project-btn project-btn-ghost"><i class="fab fa-github"></i> Code</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Project 4 -->
+                <div class="project-card reveal glass-card" id="projectClockIn">
+                    <div class="project-image">
+                        <div class="project-image-placeholder" style="--accent: #8b5cf6;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="project-overlay">
+                            <a href="https://chrid17.github.io/clock-in-buddy-main/" target="_blank" rel="noopener noreferrer" class="project-link" aria-label="Live Demo"><i class="fas fa-external-link-alt"></i></a>
+                            <a href="https://github.com/Chrid17/clock-in-buddy-main" target="_blank" rel="noopener noreferrer" class="project-link project-link-secondary" aria-label="View on GitHub"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <div class="project-category">Full-Stack App</div>
+                        <h3 class="project-title">Clock-In Buddy</h3>
+                        <p class="project-description">A remote clock-in application featuring photo verification, geolocation tracking, and seamless API integration for workforce management.</p>
+                        <div class="project-tech">
+                            <span>Flutter</span>
+                            <span>Supabase</span>
+                            <span>Odoo API</span>
+                        </div>
+                        <div class="project-actions">
+                            <a href="https://chrid17.github.io/clock-in-buddy-main/" target="_blank" rel="noopener noreferrer" class="project-btn project-btn-primary"><i class="fas fa-play"></i> Live Demo</a>
+                            <a href="https://github.com/Chrid17/clock-in-buddy-main" target="_blank" rel="noopener noreferrer" class="project-btn project-btn-ghost"><i class="fab fa-github"></i> Code</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="projects-cta reveal">
+                <a href="https://github.com/Chrid17" target="_blank" rel="noopener noreferrer" class="btn btn-outline" id="viewAllProjects">
+                    <i class="fab fa-github"></i>
+                    <span>View All on GitHub</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Education & Certificates Section -->
+    <section class="section" id="education">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-tag">&lt;education&gt;</span>
+                <h2 class="section-title">Education & <span class="text-gradient">Certificates</span></h2>
+                <p class="section-subtitle">My academic background and certifications</p>
+            </div>
+            <div class="education-grid">
+                <div class="education-column">
+                    <h3 class="column-title reveal"><i class="fas fa-graduation-cap"></i> Education</h3>
+                    <div class="education-card reveal glass-card" id="eduNUST">
+                        <div class="edu-year">2022 — 2026</div>
+                        <h4 class="edu-title">Bachelor of Computer Science</h4>
+                        <p class="edu-institution">Namibia University of Science & Technology (NUST)</p>
+                        <p class="edu-note">Awaiting graduation — May 2026</p>
+                    </div>
+                    <div class="education-card reveal glass-card" id="eduElla">
+                        <div class="edu-year">2021</div>
+                        <h4 class="edu-title">NSSCAS Certificate (Advanced Subsidiary Level)</h4>
+                        <p class="edu-institution">Ella Du Plessis High School</p>
+                    </div>
+                    <div class="education-card reveal glass-card" id="eduCaprivi">
+                        <div class="edu-year">2017 — 2020</div>
+                        <h4 class="edu-title">NSSCO Certificate (Grade 11)</h4>
+                        <p class="edu-institution">Caprivi Senior Secondary School</p>
+                    </div>
+                </div>
+                <div class="education-column">
+                    <h3 class="column-title reveal"><i class="fas fa-certificate"></i> Certifications</h3>
+                    <div class="education-card reveal glass-card cert-card" id="certOdoo">
+                        <div class="cert-badge"><i class="fas fa-award"></i></div>
+                        <h4 class="edu-title">Odoo Functional Certification</h4>
+                        <p class="edu-institution">Odoo S.A.</p>
+                        <p class="edu-note">ERP system configuration and management</p>
+                    </div>
+                    <div class="education-card reveal glass-card cert-card" id="certNSSCO">
+                        <div class="cert-badge"><i class="fas fa-award"></i></div>
+                        <h4 class="edu-title">NSSCO Certificate</h4>
+                        <p class="edu-institution">Namibia Senior Secondary Certificate Ordinary Level</p>
+                    </div>
+                    <div class="education-card reveal glass-card cert-card" id="certNSSCAS">
+                        <div class="cert-badge"><i class="fas fa-award"></i></div>
+                        <h4 class="edu-title">NSSCAS Certificate</h4>
+                        <p class="edu-institution">Advanced Subsidiary Level</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section section-alt" id="contact">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-tag">&lt;contact&gt;</span>
+                <h2 class="section-title">Get In <span class="text-gradient">Touch</span></h2>
+                <p class="section-subtitle">Let's build something amazing together</p>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-info reveal">
+                    <h3 class="contact-heading">Let's Connect</h3>
+                    <p class="contact-text">I'm always open to new opportunities, collaborations, and interesting projects. 
+                    Whether you need a developer, designer, or just want to say hello — feel free to reach out!</p>
+                    <div class="contact-methods">
+                        <a href="mailto:christianbwendo@gmail.com" class="contact-method glass-card" id="contactEmail">
+                            <div class="contact-method-icon"><i class="fas fa-envelope"></i></div>
+                            <div class="contact-method-info">
+                                <span class="contact-method-label">Email</span>
+                                <span class="contact-method-value">christianbwendo@gmail.com</span>
+                            </div>
+                            <i class="fas fa-arrow-right contact-method-arrow"></i>
+                        </a>
+                        <a href="tel:+264817999667" class="contact-method glass-card" id="contactPhone">
+                            <div class="contact-method-icon"><i class="fas fa-phone"></i></div>
+                            <div class="contact-method-info">
+                                <span class="contact-method-label">Phone</span>
+                                <span class="contact-method-value">+264 81 799 9667</span>
+                            </div>
+                            <i class="fas fa-arrow-right contact-method-arrow"></i>
+                        </a>
+                        <a href="https://github.com/Chrid17" target="_blank" rel="noopener noreferrer" class="contact-method glass-card" id="contactGithub">
+                            <div class="contact-method-icon"><i class="fab fa-github"></i></div>
+                            <div class="contact-method-info">
+                                <span class="contact-method-label">GitHub</span>
+                                <span class="contact-method-value">github.com/Chrid17</span>
+                            </div>
+                            <i class="fas fa-arrow-right contact-method-arrow"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/in/christian-bwendo-7122b7263" target="_blank" rel="noopener noreferrer" class="contact-method glass-card" id="contactLinkedin">
+                            <div class="contact-method-icon"><i class="fab fa-linkedin-in"></i></div>
+                            <div class="contact-method-info">
+                                <span class="contact-method-label">LinkedIn</span>
+                                <span class="contact-method-value">linkedin.com/in/christian-bwendo-7122b7263</span>
+                            </div>
+                            <i class="fas fa-arrow-right contact-method-arrow"></i>
+                        </a>
+                        <div class="contact-method glass-card" id="contactLocation">
+                            <div class="contact-method-icon"><i class="fas fa-map-marker-alt"></i></div>
+                            <div class="contact-method-info">
+                                <span class="contact-method-label">Location</span>
+                                <span class="contact-method-value">Eros, Akwamaryn, Windhoek, Namibia</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-form-wrapper reveal">
+                    <form class="contact-form glass-card" id="contactForm">
+                        <div class="form-group">
+                            <label for="name" class="form-label">Your Name</label>
+                            <input type="text" id="name" name="name" class="form-input" placeholder="John Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email" class="form-label">Your Email</label>
+                            <input type="email" id="email" name="email" class="form-input" placeholder="john@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="subject" class="form-label">Subject</label>
+                            <input type="text" id="subject" name="subject" class="form-input" placeholder="Project collaboration">
+                        </div>
+                        <div class="form-group">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea id="message" name="message" class="form-input form-textarea" placeholder="Tell me about your project..." rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full" id="sendMessageBtn">
+                            <span>Send Message</span>
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="#hero" class="footer-logo">
+                        <span class="logo-bracket">{</span>
+                        <span class="logo-text">CB</span>
+                        <span class="logo-bracket">}</span>
+                    </a>
+                    <p class="footer-tagline">Software Developer · Windhoek, Namibia</p>
+                </div>
+                <div class="footer-nav">
+                    <a href="#about">About</a>
+                    <a href="#skills">Skills</a>
+                    <a href="#experience">Experience</a>
+                    <a href="#projects">Projects</a>
+                    <a href="#contact">Contact</a>
+                </div>
+                <div class="footer-social">
+                    <a href="https://github.com/Chrid17" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-link" id="footerGithub"><i class="fab fa-github"></i></a>
+                    <a href="https://www.linkedin.com/in/christian-bwendo-7122b7263" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="social-link" id="footerLinkedin"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="mailto:christianbwendo@gmail.com" aria-label="Email" class="social-link" id="footerEmail"><i class="fas fa-envelope"></i></a>
+                    <a href="tel:+264817999667" aria-label="Phone" class="social-link" id="footerPhone"><i class="fas fa-phone"></i></a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Christian Bwendo. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop" aria-label="Back to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="script.js"></script>
+</body>
+</html>
