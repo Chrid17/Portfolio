@@ -847,8 +847,7 @@ img {
 .fi-6 { top: 35%; right: -5%; animation-delay: 1.2s; }
 .fi-7 { bottom: 28%; left: 2%; animation-delay: 0.3s; }
 .fi-8 { bottom: 28%; right: 2%; animation-delay: 0.9s; }
-.fi-9 { top: 18%; left: -2%; animation-delay: 0.4s; }
-.fi-10 { bottom: 18%; right: -2%; animation-delay: 1.1s; }
+.fi-9 { top: 0%; right: 15%; animation-delay: 0.4s; }
 
 @keyframes float {
   from { transform: translateY(0px); }
