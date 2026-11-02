@@ -1,0 +1,23 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  cloudflare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect the website files
+        run: |
+          mkdir _site
+          for f in index.html style.css script.js favicon.svg Christian_Bwendo_CV.pdf; do
+            if [ -f "$f" ]; then cp "$f" _site/; fi
+          done
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy _site --project-name=christianbwendo --branch=main --commit-dirty=true
