@@ -7,20 +7,25 @@
 // =====================
 // LOADER
 // =====================
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    const loader = document.getElementById('loader');
-    if (loader) {
-      loader.classList.add('hidden');
-      // Trigger hero animations after loader
-      document.querySelectorAll('.animate-in').forEach(el => {
-        el.classList.add('loaded');
-      });
-      // Start counter animations
-      startCounters();
-    }
-  }, 2000);
-});
+// Hide the loading screen as soon as the page itself is ready. It does not
+// wait for icon fonts and other CDN files, which can be slow or blocked on
+// mobile networks and used to leave phones stuck on "Loading portfolio...".
+let loaderHidden = false;
+function hideLoader() {
+  if (loaderHidden) return;
+  loaderHidden = true;
+  const loader = document.getElementById('loader');
+  if (loader) loader.classList.add('hidden');
+  document.querySelectorAll('.animate-in').forEach(el => el.classList.add('loaded'));
+  if (typeof startCounters === 'function') startCounters();
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => setTimeout(hideLoader, 600));
+} else {
+  setTimeout(hideLoader, 600);
+}
+// Safety net: never show the loader for more than 3 seconds.
+setTimeout(hideLoader, 3000);
 
 // =====================
 // CUSTOM CURSOR
