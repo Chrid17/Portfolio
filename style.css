@@ -1850,3 +1850,22 @@ img {
 
 /* Odd card out spans the full row */
 .skills-grid > .skill-category:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+/* "In development" label on project cards */
+.dev-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 8px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  white-space: nowrap;
+}
+.dev-badge i { font-size: 0.62rem; }
