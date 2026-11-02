@@ -1,0 +1,18 @@
+{
+    "urls":  {
+                 "clockin":  "https://chrid17-clockinbuddy.pages.dev",
+                 "cvanalyzer":  "https://chrid17-cv-analyzer.pages.dev",
+                 "tickets":  "https://chrid17-ticket-app.pages.dev",
+                 "elite":  "https://chrid17-elite-barbershop.pages.dev",
+                 "portfolio":  "https://christianbwendo.pages.dev",
+                 "mytasks":  "https://chrid17-mytasks.pages.dev"
+             },
+    "names":  {
+                  "clockin":  "chrid17-clockinbuddy",
+                  "cvanalyzer":  "chrid17-cv-analyzer",
+                  "tickets":  "chrid17-ticket-app",
+                  "elite":  "chrid17-elite-barbershop",
+                  "portfolio":  "christianbwendo",
+                  "mytasks":  "chrid17-mytasks"
+              }
+}
