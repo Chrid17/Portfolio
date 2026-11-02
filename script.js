@@ -106,6 +106,7 @@ function updateActiveNav() {
 // =====================
 const roles = [
   'Software Developer',
+  'Data Scientist',
   'Flutter Developer',
   'Full-Stack Developer',
   'UI/UX Designer',

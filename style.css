@@ -1847,3 +1847,6 @@ img {
   .stat-divider { width: 40px; height: 1px; }
   .timeline-header { flex-direction: column; align-items: flex-start; }
 }
+
+/* Odd card out spans the full row */
+.skills-grid > .skill-category:last-child:nth-child(odd) { grid-column: 1 / -1; }
