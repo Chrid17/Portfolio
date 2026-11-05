@@ -188,6 +188,20 @@ h2{margin:0;font-size:17px;font-weight:800}
 .overlay{position:fixed;inset:0;background:rgba(15,26,23,.45);display:flex;align-items:flex-end;justify-content:center;z-index:40}
 .sheet{background:#fff;width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px;display:flex;flex-direction:column;gap:14px}
 @media (min-width:640px){.overlay{align-items:center}.sheet{border-radius:22px}}
+/* Camera scanner */
+.scanner{position:fixed;inset:0;background:rgba(15,26,23,.72);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.scanner .panel{background:#fff;width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:18px;display:flex;flex-direction:column;gap:12px;max-height:96vh;overflow:auto}
+@media (min-width:640px){.scanner{align-items:center}.scanner .panel{border-radius:22px}}
+.cam{position:relative;width:100%;aspect-ratio:4/3;background:#0F1A17;border-radius:16px;overflow:hidden}
+.cam video{width:100%;height:100%;object-fit:cover;display:block}
+.cam .frame{position:absolute;left:12%;right:12%;top:30%;bottom:30%;border:3px solid #5FD3B3;border-radius:12px;box-shadow:0 0 0 999px rgba(0,0,0,.28)}
+.cam .laser{position:absolute;left:14%;right:14%;height:2px;background:#5FD3B3;box-shadow:0 0 10px #5FD3B3;top:50%;animation:laser2 1.6s ease-in-out infinite}
+@keyframes laser2{0%,100%{top:34%}50%{top:66%}}
+.cam .msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:#fff;font-size:14px;font-weight:600;line-height:1.5}
+.cam.hit .frame{border-color:#fff;background:rgba(95,211,179,.25)}
+.scan-status{min-height:44px;border-radius:12px;padding:10px 12px;font-size:14px;font-weight:600;background:var(--ground);display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.scan-status.ok{background:var(--brand-tint);color:var(--brand)}
+.scan-status.bad{background:var(--warn-tint);color:var(--warn)}
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 16px;border-radius:12px;font-weight:600;font-size:14px;opacity:0;transition:.25s;z-index:60;max-width:calc(100% - 32px);display:flex;gap:10px;align-items:center;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media (min-width:900px){.toast{bottom:28px}}
@@ -221,6 +235,7 @@ body.signed-out .toast{bottom:28px}
 </div>
 <div class="toast" id="toast" role="status"></div>
 <div id="modal"></div>
+<div id="scanner"></div>
 
 <script>
 (function () {
@@ -348,6 +363,7 @@ body.signed-out .toast{bottom:28px}
     return true;
   }
   function endSession() {
+    if (typeof closeScanner === 'function' && document.getElementById('scanner') && document.getElementById('scanner').innerHTML) closeScanner();
     me = null; db = null;
     store(SESSION_KEY, undefined);
     document.body.classList.add('signed-out');
@@ -676,9 +692,12 @@ body.signed-out .toast{bottom:28px}
         <div class="seg" role="radiogroup" aria-label="Movement type" style="grid-template-columns:repeat(4,minmax(0,1fr))">
           ${types.map(([id, l]) => `<button type="button" role="radio" aria-checked="${id === t}" data-action="rec-type" data-v="${id}">${l}</button>`).join('')}
         </div>
-        <label class="field">Product
-          <select class="input" id="recPid">${db.products.slice().sort((a, b) => a.name.localeCompare(b.name)).map((x) => `<option value="${x.id}"${x.id === p.id ? ' selected' : ''}>${esc(x.name)} — ${onHand(x)} on hand</option>`).join('')}</select>
-        </label>
+        <div class="field"><label for="recPid">Product</label>
+          <div class="row" style="gap:8px">
+          <select class="input" id="recPid" style="flex:1;min-width:0">${db.products.slice().sort((a, b) => a.name.localeCompare(b.name)).map((x) => `<option value="${x.id}"${x.id === p.id ? ' selected' : ''}>${esc(x.name)} — ${onHand(x)} on hand</option>`).join('')}</select>
+          <button class="iconbtn" type="button" data-action="scan-record" aria-label="Scan product barcode" style="width:46px;height:46px;color:var(--brand)">${icon.scan}</button>
+          </div>
+        </div>
         <div class="card pad stack" style="gap:14px;align-items:center">
           <span class="sub">${t === 'adjust' ? 'Counted quantity' : 'Quantity'}</span>
           <div class="stepper">
@@ -794,7 +813,7 @@ body.signed-out .toast{bottom:28px}
             <div class="bar" style="height:8px"><span style="width:${pct}%;background:var(--brand)"></span></div>
             <div class="legend"><span><i style="background:var(--brand)"></i>${done.length - varianceItems.length} match</span><span><i style="background:var(--out)"></i>${varianceItems.length} with variance</span></div>
           </div>
-          <button class="scan" type="button" data-action="scan-count" id="scanBtn"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i><span class="laser"></span>${icon.scan}<span id="scanText">Tap to scan the next item</span></button>
+          <button class="scan" type="button" data-action="scan-count" id="scanBtn"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i>${icon.scan}<span>Scan barcodes with your camera</span><span style="font-size:12px;font-weight:600;color:#9FB8AF">Each scan adds 1 to that product's count</span></button>
           <button class="btn primary" type="button" data-action="count-finish" ${done.length ? '' : 'disabled'} style="height:52px">Finish &amp; post ${varianceItems.length} adjustment${varianceItems.length === 1 ? '' : 's'}</button>
         </div>
         <div class="stack">
@@ -1010,11 +1029,15 @@ body.signed-out .toast{bottom:28px}
     if (a === 'cat') { ui.cat = v; render(true); }
     if (a === 'clear-filter') { ui.filter = null; location.hash = '#/products'; }
     if (a === 'scan-search') {
-      const withCode = db.products.filter((p) => p.barcode);
-      if (!withCode.length) { toast('No products with a barcode yet'); return; }
-      const p = withCode[Math.floor(Math.random() * withCode.length)];
-      toast('Scanned ' + p.barcode);
-      location.hash = '#/product/' + p.id;
+      openScanner({
+        title: 'Scan a product',
+        hint: 'Point your camera at the product barcode.',
+        onCode: (code) => {
+          const p = byBarcode(code);
+          if (p) { closeScanner(); toast('Found ' + p.name); location.hash = '#/product/' + p.id; return { ok: true, msg: p.name }; }
+          return { ok: false, msg: 'No product has barcode ' + code + '.', addCode: code };
+        }
+      });
     }
     if (a === 'rec-type') { ui.recType = v; render(true); }
     if (a === 'qty') {
@@ -1035,17 +1058,48 @@ body.signed-out .toast{bottom:28px}
       c.last = el.dataset.id; save(); render(true);
     }
     if (a === 'scan-count') {
-      const c = db.count;
-      const next = c.items.find((id) => c.counts[id] == null) || c.items[Math.floor(Math.random() * c.items.length)];
-      $('#scanBtn').classList.add('on'); $('#scanText').textContent = 'Scanning…';
-      setTimeout(() => {
-        if (!db || !db.count) return;
-        const p = product(next);
-        const cur = c.counts[next];
-        c.counts[next] = (cur == null ? 0 : cur) + 1; c.last = next; save(); render(true);
-        toast('Scanned ' + p.name + ' (+1)');
-        const row = document.querySelector('[data-row="' + next + '"]'); if (row) row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      }, 700);
+      openScanner({
+        title: 'Stock take scanning',
+        hint: 'Scan each item on the shelf. Every scan adds 1 to its count.',
+        continuous: true,
+        onCode: (code) => {
+          const c = db.count; if (!c) return { ok: false, msg: 'No stock take in progress.' };
+          const p = byBarcode(code);
+          if (!p) return { ok: false, msg: 'Unknown barcode ' + code + '.', addCode: code };
+          if (!c.items.includes(p.id)) return { ok: false, msg: p.name + ' is not part of this count.' };
+          const cur = c.counts[p.id];
+          c.counts[p.id] = (cur == null ? 0 : cur) + 1; c.last = p.id; save(); render(true);
+          return { ok: true, msg: p.name + ' · counted ' + c.counts[p.id] };
+        }
+      });
+    }
+    if (a === 'scan-record') {
+      openScanner({
+        title: 'Scan a product',
+        hint: 'Point your camera at the product barcode.',
+        onCode: (code) => {
+          const p = byBarcode(code);
+          if (!p) return { ok: false, msg: 'No product has barcode ' + code + '.', addCode: code };
+          closeScanner();
+          $('#recPid').value = p.id; recPreview(); toast('Selected ' + p.name);
+          return { ok: true, msg: p.name };
+        }
+      });
+    }
+    if (a === 'scan-field') {
+      openScanner({
+        title: 'Scan barcode',
+        hint: 'Scan the barcode printed on the product.',
+        onCode: (code) => { closeScanner(); const f = $('#pfBarcode'); if (f) { f.value = code; f.focus(); } toast('Barcode ' + code + ' captured'); return { ok: true, msg: code }; }
+      });
+    }
+    if (a === 'scan-add') {
+      const code = el.dataset.code; closeScanner(); openProductForm(null, code);
+    }
+    if (a === 'scan-close') closeScanner();
+    if (a === 'scan-manual') {
+      const inp = $('#scanManual'); const code = (inp.value || '').trim();
+      if (code) { handleCode(code, true); inp.value = ''; }
     }
     if (a === 'count-finish') {
       const c = db.count; let posted = 0;
@@ -1114,9 +1168,127 @@ body.signed-out .toast{bottom:28px}
     if (f.id === 'businessForm') saveBusiness(f);
     if (f.id === 'passwordForm') savePassword(f);
   });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#modal').innerHTML) closeModal(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.id === 'scanManual') { e.preventDefault(); const c = e.target.value.trim(); if (c) { handleCode(c, true); e.target.value = ''; } return; }
+    if (e.key !== 'Escape') return;
+    if ($('#scanner').innerHTML) closeScanner(); else if ($('#modal').innerHTML) closeModal();
+  });
+  window.addEventListener('hashchange', () => { if ($('#scanner').innerHTML) closeScanner(); });
 
-  function openProductForm(id) {
+  // ---------------------------------------------------------------- camera scanner
+  // Uses the browser's BarcodeDetector where available (Chrome, Edge, Android) and
+  // falls back to the ZXing library (Safari/iPhone, Firefox). Needs HTTPS for camera access.
+  const byBarcode = (code) => db.products.find((p) => p.barcode && p.barcode === String(code).trim());
+  const scan = { opts: null, stream: null, timer: null, reader: null, last: '', lastAt: 0, busy: false };
+  const FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'code_93', 'itf', 'codabar', 'qr_code', 'data_matrix'];
+
+  function openScanner(opts) {
+    scan.opts = opts; scan.last = ''; scan.lastAt = 0;
+    $('#scanner').innerHTML = `<div class="scanner" role="dialog" aria-modal="true" aria-label="${esc(opts.title)}"><div class="panel">
+      <div class="between"><h2>${esc(opts.title)}</h2><button class="iconbtn" type="button" data-action="scan-close" aria-label="Close scanner">${icon.close}</button></div>
+      <div class="cam" id="cam"><video id="camVideo" playsinline muted autoplay></video><div class="frame"></div><div class="laser"></div><div class="msg" id="camMsg">Starting camera…</div></div>
+      <div class="scan-status" id="scanStatus" aria-live="polite">${esc(opts.hint)}</div>
+      <form class="row" style="gap:8px" onsubmit="return false"><label class="sr" for="scanManual">Type a barcode</label>
+        <input class="input" id="scanManual" inputmode="numeric" autocomplete="off" placeholder="Or type the barcode number" style="flex:1;min-width:0">
+        <button class="btn" type="button" data-action="scan-manual">Enter</button></form>
+      ${opts.continuous ? '<button class="btn primary" type="button" data-action="scan-close">Done scanning</button>' : ''}
+    </div></div>`;
+    startCamera();
+  }
+
+  function camMessage(text) { const m = $('#camMsg'); if (m) { m.textContent = text; m.style.display = text ? 'flex' : 'none'; } }
+
+  async function startCamera() {
+    const video = $('#camVideo');
+    if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      camMessage('Camera scanning needs a secure (https) page and a browser with camera access. Type the barcode below instead.');
+      return;
+    }
+    const constraints = { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false };
+    try {
+      if ('BarcodeDetector' in window) {
+        let formats = FORMATS;
+        try { const sup = await window.BarcodeDetector.getSupportedFormats(); formats = FORMATS.filter((f) => sup.includes(f)); } catch (e) { /* use defaults */ }
+        if (!formats.length) throw new Error('no-formats');
+        const detector = new window.BarcodeDetector({ formats });
+        scan.stream = await navigator.mediaDevices.getUserMedia(constraints);
+        if (!scan.opts) { stopCamera(); return; }
+        video.srcObject = scan.stream; await video.play();
+        camMessage('');
+        const tick = async () => {
+          if (!scan.opts || !scan.stream) return;
+          if (!scan.busy && video.readyState >= 2) {
+            scan.busy = true;
+            try { const codes = await detector.detect(video); if (codes.length) handleCode(codes[0].rawValue); } catch (e) { /* frame not ready */ }
+            scan.busy = false;
+          }
+          scan.timer = setTimeout(tick, 120);
+        };
+        tick();
+        return;
+      }
+      throw new Error('no-native');
+    } catch (err) {
+      if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) return cameraDenied();
+      if (err && err.name === 'NotFoundError') return camMessage('No camera was found on this device. Type the barcode below instead.');
+      if (scan.stream) { scan.stream.getTracks().forEach((t) => t.stop()); scan.stream = null; }
+    }
+    // Fallback: ZXing (works in Safari / iOS and Firefox)
+    try {
+      await loadZxing();
+      if (!scan.opts) return;
+      // Default hints read all common 1D and 2D formats; restricting formats + TRY_HARDER stops ZXing decoding video frames.
+      scan.reader = new window.ZXing.BrowserMultiFormatReader(undefined, 150);
+      await scan.reader.decodeFromConstraints(constraints, video, (result) => { if (result) handleCode(result.getText()); });
+      camMessage('');
+    } catch (err) {
+      if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) return cameraDenied();
+      if (err && err.name === 'NotFoundError') return camMessage('No camera was found on this device. Type the barcode below instead.');
+      camMessage('The camera could not be started. Type the barcode below instead.');
+    }
+  }
+  function cameraDenied() { camMessage('Camera access was blocked. Allow camera access for this site in your browser settings, or type the barcode below.'); }
+
+  let zxingPromise = null;
+  function loadZxing() {
+    if (window.ZXing) return Promise.resolve();
+    if (!zxingPromise) {
+      zxingPromise = new Promise((resolve, reject) => {
+        const sc = document.createElement('script');
+        sc.src = 'zxing.min.js'; sc.async = true;
+        sc.onload = () => resolve(); sc.onerror = () => { zxingPromise = null; reject(new Error('zxing-load')); };
+        document.head.appendChild(sc);
+      });
+    }
+    return zxingPromise;
+  }
+
+  function handleCode(raw, manual) {
+    if (!scan.opts) return;
+    const code = String(raw).trim();
+    if (!code) return;
+    const now = Date.now();
+    if (!manual && code === scan.last && now - scan.lastAt < 1800) return; // same item still in view
+    scan.last = code; scan.lastAt = now;
+    if (navigator.vibrate) { try { navigator.vibrate(60); } catch (e) { /* ignore */ } }
+    const cam = $('#cam'); if (cam) { cam.classList.add('hit'); setTimeout(() => cam.classList.remove('hit'), 300); }
+    const res = scan.opts.onCode(code) || {};
+    const st = $('#scanStatus');
+    if (st) {
+      st.className = 'scan-status ' + (res.ok ? 'ok' : 'bad');
+      st.innerHTML = '<span>' + esc(res.msg || code) + '</span>' + (res.addCode ? '<button class="btn" style="height:36px" type="button" data-action="scan-add" data-code="' + esc(res.addCode) + '">Add as new product</button>' : '');
+    }
+  }
+
+  function stopCamera() {
+    clearTimeout(scan.timer); scan.timer = null;
+    if (scan.reader) { try { scan.reader.reset(); } catch (e) { /* ignore */ } scan.reader = null; }
+    if (scan.stream) { scan.stream.getTracks().forEach((t) => t.stop()); scan.stream = null; }
+    const v = $('#camVideo'); if (v && v.srcObject) { try { v.srcObject.getTracks().forEach((t) => t.stop()); } catch (e) { /* ignore */ } v.srcObject = null; }
+  }
+  function closeScanner() { scan.opts = null; stopCamera(); $('#scanner').innerHTML = ''; }
+
+  function openProductForm(id, prefillBarcode) {
     const p = id ? product(id) : null;
     const cats = categories();
     const catDefault = p ? p.cat : (cats[0] || '');
@@ -1129,7 +1301,7 @@ body.signed-out .toast{bottom:28px}
           <label class="field">Minimum level<input class="input" name="min" type="number" min="0" value="${p ? p.min : db.settings.defaultMin}"></label>
           <label class="field">Selling price (N$)<input class="input" name="price" type="number" min="0" step="0.01" required placeholder="0.00" value="${p ? p.price : ''}"></label>
           <label class="field">Cost price (N$)<input class="input" name="cost" type="number" min="0" step="0.01" required placeholder="0.00" value="${p ? p.cost : ''}"></label>
-          <label class="field">Barcode (optional)<input class="input" name="barcode" inputmode="numeric" maxlength="20" value="${p ? esc(p.barcode || '') : ''}"></label>
+          <div class="field"><label for="pfBarcode">Barcode (optional)</label><div class="row" style="gap:6px"><input class="input" id="pfBarcode" name="barcode" inputmode="numeric" maxlength="32" style="flex:1;min-width:0" value="${p ? esc(p.barcode || '') : esc(prefillBarcode || '')}"><button class="iconbtn" type="button" data-action="scan-field" aria-label="Scan barcode into this field" style="width:46px;height:46px;color:var(--brand)">${icon.scan}</button></div></div>
           <label class="field">Supplier (optional)<input class="input" name="supplier" maxlength="40" value="${p && p.supplier !== '—' ? esc(p.supplier) : ''}"></label>
           ${p ? '' : `<label class="field">Opening stock<input class="input" name="qty" type="number" min="0" value="0"></label>`}
         </div>
@@ -1150,6 +1322,9 @@ body.signed-out .toast{bottom:28px}
     if (cost > price) { err.textContent = 'Cost price is higher than the selling price.'; return; }
     const dup = db.products.find((x) => x.name.toLowerCase() === name.toLowerCase() && x.id !== f.dataset.id);
     if (dup) { err.textContent = 'A product with this name already exists.'; return; }
+    const code = (d.barcode || '').trim();
+    const dupCode = code && db.products.find((x) => x.barcode === code && x.id !== f.dataset.id);
+    if (dupCode) { err.textContent = 'This barcode already belongs to ' + dupCode.name + '.'; return; }
     const fields = { name, cat, price, cost, min: Math.max(0, parseInt(d.min, 10) || 0), barcode: (d.barcode || '').trim(), supplier: (d.supplier || '').trim() || '—' };
     if (f.dataset.id) {
       Object.assign(product(f.dataset.id), fields);
