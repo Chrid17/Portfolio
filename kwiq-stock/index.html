@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Kwiq Stock — Stock recording prototype</title>
-<meta name="description" content="Kwiq Stock: an interactive prototype of a stock recording app — receive and issue stock, run barcode stock takes and track movements.">
+<title>Kwiq Stock — Stock recording</title>
+<meta name="description" content="Kwiq Stock: record stock received and issued, run barcode stock takes and track every movement.">
 <meta name="theme-color" content="#0B6E5A">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230B6E5A'/%3E%3Cpath d='M9 8v16M9 16l9-8M12.5 13l7 11' stroke='white' stroke-width='3' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,7 +19,7 @@
   --radius:16px;--mono:'JetBrains Mono',ui-monospace,monospace;
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%}
+html,body{margin:0;min-height:100%}
 body{font-family:'Manrope',system-ui,-apple-system,sans-serif;background:var(--ground);color:var(--ink);-webkit-font-smoothing:antialiased}
 a{color:var(--brand);text-decoration:none}
 button,input,select{font-family:inherit;font-size:inherit;color:inherit}
@@ -37,6 +37,9 @@ button{cursor:pointer}
 .bottomnav a{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--muted);padding:6px 0}
 .bottomnav a.active{color:var(--brand);font-weight:800}
 .bottomnav .fab{width:54px;height:54px;border-radius:18px;background:var(--brand);display:flex;align-items:center;justify-content:center;margin-top:-22px;box-shadow:0 8px 20px rgba(11,110,90,.35)}
+body.signed-out .sidebar,body.signed-out .bottomnav{display:none !important}
+body.signed-out .main{padding:0}
+body.signed-out .content{max-width:none}
 @media (min-width:900px){
   .sidebar{display:flex;flex-direction:column;gap:6px;width:240px;flex-shrink:0;background:var(--card);border-right:1px solid var(--line);padding:22px 14px;position:sticky;top:0;height:100vh}
   .bottomnav{display:none}
@@ -45,13 +48,14 @@ button{cursor:pointer}
 }
 @media (max-width:899px){.desktop-only{display:none !important}}
 .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;font-weight:800;font-size:18px;letter-spacing:-.3px}
-.logo{width:36px;height:36px;border-radius:10px;background:var(--brand);display:flex;align-items:center;justify-content:center}
+.logo{width:36px;height:36px;border-radius:10px;background:var(--brand);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .sidebar a{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;color:var(--muted);font-weight:700;font-size:15px}
 .sidebar a:hover{background:var(--ground);color:var(--ink)}
 .sidebar a.active{background:var(--brand-tint);color:var(--brand)}
 .sidebar .cta{margin-top:10px;background:var(--brand);color:#fff;justify-content:center}
 .sidebar .cta:hover{background:var(--brand-dark);color:#fff}
-.sidebar .foot{margin-top:auto;font-size:12px;color:var(--muted);padding:8px;line-height:1.5}
+.sidebar .me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px 8px;border-top:1px solid var(--line-soft)}
+.avatar{width:40px;height:40px;border-radius:12px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
 
 /* Components */
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
@@ -66,8 +70,9 @@ h2{margin:0;font-size:17px;font-weight:800}
 .btn:hover{border-color:#C9D3CE}
 .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
 .btn.primary:hover{background:var(--brand-dark)}
+.btn.danger{color:var(--bad);border-color:#F3C6C2}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.iconbtn{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--card);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.iconbtn{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--card);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink)}
 .badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
 .b-ok{background:var(--brand-tint);color:var(--brand)}
 .b-low{background:var(--warn-tint);color:var(--warn)}
@@ -93,13 +98,15 @@ h2{margin:0;font-size:17px;font-weight:800}
 .field{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;color:var(--muted)}
 .input{height:46px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:15px;color:var(--ink);width:100%}
 .input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(11,110,90,.15)}
-.search{display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);flex:1}
+.input[readonly]{background:var(--ground);color:var(--muted)}
+.search{display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);flex:1;min-width:0}
 .search input{flex:1;border:none;outline:none;background:transparent;font-size:15px;min-width:0}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.grid-cards{display:grid;grid-template-columns:1fr;gap:18px}
+.grid-cards{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
 @media (min-width:900px){.grid-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:14px}
-.err{color:var(--bad);font-size:13px;font-weight:600}
+.empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:14px;line-height:1.5}
+.err{color:var(--bad);font-size:13px;font-weight:600;min-height:0}
+.err:empty{display:none}
 
 /* Home */
 .hero{background:var(--brand);color:#fff;border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:16px}
@@ -114,6 +121,10 @@ h2{margin:0;font-size:17px;font-weight:800}
 .actions a > span{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;transition:transform .15s}
 .actions a:hover > span{transform:translateY(-2px)}
 @media (min-width:900px){.actions a{flex-direction:row;justify-content:flex-start;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;font-size:14px}.actions a > span{width:44px;height:44px;border-radius:12px}}
+.welcome{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.steps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;width:100%}
+.steps li{display:flex;gap:12px;align-items:center;font-size:14px;font-weight:600}
+.steps li span{width:28px;height:28px;border-radius:50%;background:var(--brand-tint);color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
 
 /* Record */
 .stepper{display:flex;align-items:center;justify-content:center;gap:20px}
@@ -138,7 +149,7 @@ h2{margin:0;font-size:17px;font-weight:800}
 .counter button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--ground);font-weight:800;font-size:16px}
 .counter button.plus{background:var(--brand);border-color:var(--brand);color:#fff}
 .counter input{width:52px;height:34px;text-align:center;border:1px solid var(--line);border-radius:10px;font-family:var(--mono);font-weight:600;font-size:15px}
-.row.hl{background:#F2FAF7}
+.hl{background:#F2FAF7}
 
 /* Reports */
 .chart{height:170px;display:grid;gap:8px;align-items:end}
@@ -149,18 +160,41 @@ h2{margin:0;font-size:17px;font-weight:800}
 .legend{display:flex;gap:14px;font-size:12px;font-weight:600;color:var(--muted)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 
+/* Auth */
+.auth{min-height:100vh;display:grid;grid-template-columns:1fr}
+.auth-side{display:none}
+.auth-main{display:flex;align-items:center;justify-content:center;padding:32px 20px}
+.auth-card{width:100%;max-width:420px;display:flex;flex-direction:column;gap:18px}
+.auth-card form{display:flex;flex-direction:column;gap:14px}
+.pw{position:relative}
+.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);height:34px;padding:0 10px;border:none;background:none;color:var(--brand);font-weight:700;font-size:13px}
+.hint{font-size:12px;color:var(--muted);font-weight:500}
+.switch{font-size:14px;color:var(--muted);text-align:center}
+.switch a{font-weight:800}
+@media (min-width:900px){
+  .auth{grid-template-columns:1fr 1fr}
+  .auth-side{display:flex;flex-direction:column;justify-content:space-between;background:var(--brand);color:#fff;padding:48px}
+  .auth-side h2{font-size:34px;line-height:1.15;letter-spacing:-.8px;max-width:440px}
+  .auth-side ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:14px;font-size:16px;color:var(--brand-on)}
+  .auth-side li{display:flex;gap:12px;align-items:center}
+}
+
+/* Settings */
+.settings{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;max-width:760px;width:100%}
+.settings form{display:flex;flex-direction:column;gap:12px}
+.settings .card h2{font-size:16px}
+
 /* Modal + toast */
 .overlay{position:fixed;inset:0;background:rgba(15,26,23,.45);display:flex;align-items:flex-end;justify-content:center;z-index:40}
 .sheet{background:#fff;width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px;display:flex;flex-direction:column;gap:14px}
 @media (min-width:640px){.overlay{align-items:center}.sheet{border-radius:22px}}
-.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 16px;border-radius:12px;font-weight:600;font-size:14px;opacity:0;transition:.25s;z-index:60;max-width:calc(100% - 32px);display:flex;gap:10px;align-items:center}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 16px;border-radius:12px;font-weight:600;font-size:14px;opacity:0;transition:.25s;z-index:60;max-width:calc(100% - 32px);display:flex;gap:10px;align-items:center;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media (min-width:900px){.toast{bottom:28px}}
-.notice{font-size:12px;color:var(--muted);text-align:center;padding:6px 0}
-.notice button{border:none;background:none;color:var(--brand);font-weight:700;font-size:12px;padding:0;text-decoration:underline}
+body.signed-out .toast{bottom:28px}
 </style>
 </head>
-<body>
+<body class="signed-out">
 <div class="app">
   <nav class="sidebar" aria-label="Main">
     <div class="brand"><span class="logo"><svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 6v20M9 16l10-9M12.5 12.5l8 13.5" stroke="#fff" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg></span>Kwiq Stock</div>
@@ -168,8 +202,9 @@ h2{margin:0;font-size:17px;font-weight:800}
     <a href="#/products" data-nav="products"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/></svg>Products</a>
     <a href="#/count" data-nav="count"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v2h6V3"/><path d="m9 13 2 2 4-4"/></svg>Stock take</a>
     <a href="#/reports" data-nav="reports"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Reports</a>
+    <a href="#/settings" data-nav="settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</a>
     <a href="#/record" data-nav="record" class="cta"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Record stock</a>
-    <div class="foot">Interactive prototype · sample data saved in this browser.<br><button type="button" data-action="reset" style="border:none;background:none;padding:0;color:var(--brand);font-weight:700;font-size:12px;text-decoration:underline">Reset demo data</button></div>
+    <a href="#/settings" class="me" id="sideMe" aria-label="Account settings"></a>
   </nav>
 
   <main class="main" id="main" tabindex="-1">
@@ -198,9 +233,14 @@ h2{margin:0;font-size:17px;font-weight:800}
   const money2 = (n) => 'N$ ' + n.toFixed(2);
   const fmtNum = (n) => Math.round(n).toLocaleString('en-ZA').replace(/,/g, ' ');
   const DAY = 86400000;
-  const LOCS = { main: 'Main Store', back: 'Back Storeroom' };
   const TONES = [['--amber-tint', '--amber'], ['--brand-tint', '--brand'], ['--blue-tint', '--blue'], ['--purple-tint', '--purple']];
-  const STORE_KEY = 'kwiq-stock-v1';
+  const USERS_KEY = 'kwiq-users-v2';
+  const SESSION_KEY = 'kwiq-session-v2';
+  const dataKey = (email) => 'kwiq-data-v2:' + email;
+  let LOCS = { main: 'Main Store', back: 'Storeroom' };
+
+  function store(key, val) { try { if (val === undefined) localStorage.removeItem(key); else localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* storage unavailable */ } }
+  function read(key) { try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
 
   function timeAgo(t) {
     const d = Date.now() - t;
@@ -212,7 +252,7 @@ h2{margin:0;font-size:17px;font-weight:800}
     if (date.toDateString() === new Date(Date.now() - DAY).toDateString()) return 'Yesterday, ' + hm;
     return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + hm;
   }
-  const initials = (name) => (name.split(/\s+/).filter((w) => /^[A-Za-z]/.test(w)).slice(0, 2).map((w) => w[0]).join('') || name.slice(0, 2)).toUpperCase();
+  const initials = (name) => (String(name).split(/\s+/).filter((w) => /^[A-Za-z]/.test(w)).slice(0, 2).map((w) => w[0]).join('') || String(name).slice(0, 2)).toUpperCase();
   const tone = (id) => TONES[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % TONES.length];
   const thumb = (p, size) => {
     const t = tone(p.id);
@@ -231,72 +271,87 @@ h2{margin:0;font-size:17px;font-weight:800}
     minus: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>',
     check: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
     close: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>',
-    download: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>'
+    download: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>',
+    logout: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>',
+    box: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/></svg>',
+    logo: '<svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 6v20M9 16l10-9M12.5 12.5l8 13.5" stroke="#fff" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>'
   };
 
-  // ---------------------------------------------------------------- data
-  function seed() {
-    const catalog = [
-      ['Cooking Oil 2L', 'Grocery', 64.99, 51.2, 50, 9, 0, 'Namib Wholesalers'],
-      ['Maize Meal 10kg', 'Grocery', 119.99, 96.5, 40, 17, 0, 'Namib Mills Distribution'],
-      ['Sugar Brown 2kg', 'Grocery', 42.5, 33.9, 40, 21, 0, 'Namib Wholesalers'],
-      ['Rice Long Grain 2kg', 'Grocery', 46.99, 36.4, 30, 64, 24, 'Coastal Foods'],
-      ['Baked Beans 410g', 'Grocery', 18.99, 13.1, 36, 46, 12, 'Coastal Foods'],
-      ['Pasta Spaghetti 500g', 'Grocery', 21.99, 15.8, 30, 22, 0, 'Coastal Foods'],
-      ['Long Life Milk 1L', 'Dairy', 21.99, 16.75, 48, 64, 36, 'Kalahari Dairy'],
-      ['Butter 500g', 'Dairy', 69.99, 55.0, 20, 31, 0, 'Kalahari Dairy'],
-      ['Cheddar Cheese 400g', 'Dairy', 84.99, 66.2, 15, 0, 0, 'Kalahari Dairy'],
-      ['Fruit Juice 1L', 'Beverages', 24.99, 18.3, 40, 56, 24, 'Etosha Beverages'],
-      ['Still Water 1.5L', 'Beverages', 12.99, 8.6, 60, 140, 96, 'Etosha Beverages'],
-      ['Cola 2L', 'Beverages', 27.99, 21.4, 48, 38, 0, 'Etosha Beverages'],
-      ['Dishwashing Liquid 750ml', 'Household', 29.99, 21.9, 30, 0, 0, 'CleanCo Supplies'],
-      ['Bath Soap 175g', 'Household', 14.99, 9.8, 60, 132, 48, 'CleanCo Supplies'],
-      ['Toilet Paper 9-pack', 'Household', 79.99, 61.0, 20, 26, 10, 'CleanCo Supplies'],
-      ['Washing Powder 2kg', 'Household', 89.99, 70.3, 18, 0, 6, 'CleanCo Supplies']
-    ];
-    const prefix = { Grocery: 'GRC', Dairy: 'DRY', Beverages: 'BEV', Household: 'HSH' };
-    const products = catalog.map((c, i) => ({
-      id: 'p' + (i + 1),
-      name: c[0], cat: c[1], price: c[2], cost: c[3], min: c[4],
-      stock: { main: c[5], back: c[6] },
-      sku: prefix[c[1]] + '-' + String(100 + i * 7).padStart(4, '0'),
-      barcode: '600' + String(1234500000 + i * 97).slice(0, 10),
-      supplier: c[7]
-    }));
-    // Deterministic movement history for the last 35 days.
-    let s = 7;
-    const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
-    const users = ['Ndapewa', 'Peter', 'Selma', 'You'];
-    const movements = [];
-    let grv = 1040, mid = 1;
-    const now = Date.now();
-    for (let d = 34; d >= 0; d--) {
-      const dayStart = now - d * DAY;
-      products.forEach((p) => {
-        const daily = p.min / 7;
-        if (rnd() < 0.8) {
-          const q = Math.max(1, Math.round(daily * (0.4 + rnd() * 1.3)));
-          movements.push({ id: 'm' + mid++, pid: p.id, type: 'issue', delta: -q, loc: 'main', ref: 'Sale · Till ' + (1 + Math.floor(rnd() * 3)), user: users[Math.floor(rnd() * 3)], at: dayStart - (1 + Math.floor(rnd() * 9)) * 3600000 });
-        }
-        if (rnd() < 0.09) {
-          const q = Math.round(p.min * (1 + rnd()));
-          movements.push({ id: 'm' + mid++, pid: p.id, type: 'receive', delta: q, loc: rnd() < 0.7 ? 'main' : 'back', ref: 'GRV-' + grv++, user: users[3], at: dayStart - Math.floor(2 + rnd() * 6) * 3600000 });
-        }
-      });
+  // ---------------------------------------------------------------- accounts
+  async function hashPassword(password, salt) {
+    const text = salt + ':' + password;
+    if (window.crypto && crypto.subtle && window.TextEncoder) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
     }
-    movements.sort((a, b) => b.at - a.at);
-    return { products, movements, nextGrv: grv, nextId: mid, count: null };
+    let h = 5381; for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+    return 'x' + (h >>> 0).toString(16);
+  }
+  const users = () => read(USERS_KEY) || {};
+  const go = (h) => { if (location.hash === h) render(); else location.hash = h; };
+  let me = null; // { email, name, business, ... }
+
+  function emptyDb(business) {
+    return {
+      products: [], movements: [], nextGrv: 1001, nextId: 1, count: null,
+      settings: { business: business || 'My Business', locMain: 'Main Store', locBack: 'Storeroom', defaultMin: 10 }
+    };
   }
 
-  let db;
-  function load() {
-    try {
-      const raw = localStorage.getItem(STORE_KEY);
-      if (raw) { db = JSON.parse(raw); if (db && db.products && db.movements) return; }
-    } catch (e) { /* storage unavailable: run in memory */ }
-    db = seed();
+  // Optional demo catalogue, only loaded when the user asks for it in Settings.
+  function sampleData(base) {
+    const catalog = [
+      ['Cooking Oil 2L', 'Grocery', 64.99, 51.2, 50, 9, 0], ['Maize Meal 10kg', 'Grocery', 119.99, 96.5, 40, 17, 0],
+      ['Sugar Brown 2kg', 'Grocery', 42.5, 33.9, 40, 21, 0], ['Rice Long Grain 2kg', 'Grocery', 46.99, 36.4, 30, 64, 24],
+      ['Baked Beans 410g', 'Grocery', 18.99, 13.1, 36, 46, 12], ['Long Life Milk 1L', 'Dairy', 21.99, 16.75, 48, 64, 36],
+      ['Butter 500g', 'Dairy', 69.99, 55.0, 20, 31, 0], ['Fruit Juice 1L', 'Beverages', 24.99, 18.3, 40, 56, 24],
+      ['Still Water 1.5L', 'Beverages', 12.99, 8.6, 60, 140, 96], ['Dishwashing Liquid 750ml', 'Household', 29.99, 21.9, 30, 0, 0],
+      ['Bath Soap 175g', 'Household', 14.99, 9.8, 60, 132, 48], ['Washing Powder 2kg', 'Household', 89.99, 70.3, 18, 0, 6]
+    ];
+    const d = emptyDb(base.settings.business);
+    d.settings = base.settings;
+    d.products = catalog.map((c, i) => ({
+      id: 's' + (i + 1), name: c[0], cat: c[1], price: c[2], cost: c[3], min: c[4], stock: { main: c[5], back: c[6] },
+      sku: skuFor(c[1], i + 1), barcode: '600' + String(1234500000 + i * 97).slice(0, 10), supplier: '—'
+    }));
+    let s = 7; const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+    const now = Date.now(); const who = me ? me.name.split(' ')[0] : 'You';
+    for (let day = 27; day >= 0; day--) {
+      d.products.forEach((p) => {
+        if (rnd() < 0.8) d.movements.push({ id: 'm' + d.nextId++, pid: p.id, type: 'issue', delta: -Math.max(1, Math.round(p.min / 7 * (0.4 + rnd() * 1.3))), loc: 'main', ref: 'Sale', user: who, at: now - day * DAY - (1 + Math.floor(rnd() * 9)) * 3600000 });
+        if (rnd() < 0.09) d.movements.push({ id: 'm' + d.nextId++, pid: p.id, type: 'receive', delta: Math.round(p.min * (1 + rnd())), loc: 'main', ref: 'GRV-' + d.nextGrv++, user: who, at: now - day * DAY - (2 + Math.floor(rnd() * 6)) * 3600000 });
+      });
+    }
+    d.movements.sort((a, b) => b.at - a.at);
+    return d;
   }
-  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(db)); } catch (e) { /* ignore */ } }
+  function skuFor(cat, n) {
+    const pre = (cat || 'GEN').replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase().padEnd(3, 'X');
+    return pre + '-' + String(n).padStart(4, '0');
+  }
+
+  let db = null;
+  function loadData() {
+    db = read(dataKey(me.email)) || emptyDb(me.business);
+    if (!db.settings) db.settings = emptyDb(me.business).settings;
+    LOCS = { main: db.settings.locMain, back: db.settings.locBack };
+  }
+  function save() { if (me && db) store(dataKey(me.email), db); }
+
+  function startSession(email) {
+    const u = users()[email];
+    if (!u) return false;
+    me = { email, name: u.name, business: u.business };
+    store(SESSION_KEY, { email });
+    loadData();
+    document.body.classList.remove('signed-out');
+    return true;
+  }
+  function endSession() {
+    me = null; db = null;
+    store(SESSION_KEY, undefined);
+    document.body.classList.add('signed-out');
+  }
 
   const product = (id) => db.products.find((p) => p.id === id);
   const onHand = (p) => p.stock.main + p.stock.back;
@@ -306,11 +361,12 @@ h2{margin:0;font-size:17px;font-weight:800}
     return `<span class="badge b-${st}">${st === 'out' ? 'Out of stock' : st === 'low' ? 'Low stock' : 'In stock'}</span>`;
   };
   const reorderQty = (p) => Math.max(0, p.min * 2 - onHand(p));
+  const categories = () => [...new Set(db.products.map((p) => p.cat))].sort();
 
   function addMovement(m) {
     m.id = 'm' + db.nextId++;
     m.at = Date.now();
-    m.user = 'You';
+    m.user = me.name.split(' ')[0];
     db.movements.unshift(m);
   }
 
@@ -325,13 +381,95 @@ h2{margin:0;font-size:17px;font-weight:800}
   }
   function openModal(html) {
     $('#modal').innerHTML = `<div class="overlay" data-action="close-modal"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
-    const first = $('#modal input, #modal select, #modal button');
+    const first = $('#modal input, #modal select');
     if (first) first.focus();
   }
   function closeModal() { $('#modal').innerHTML = ''; }
+  const pwField = (name, label, auto, hint) => `
+    <label class="field">${label}
+      <span class="pw"><input class="input" name="${name}" type="password" autocomplete="${auto}" required minlength="8" style="padding-right:64px">
+      <button type="button" data-action="toggle-pw" aria-label="Show password">Show</button></span>
+      ${hint ? `<span class="hint">${hint}</span>` : ''}
+    </label>`;
 
-  // ---------------------------------------------------------------- views
-  const ui = { cat: 'All', q: '', sort: 'low', recType: 'receive', recPid: null, recQty: 1, period: 'week', countCat: 'All' };
+  // ---------------------------------------------------------------- auth views
+  function authShell(inner) {
+    return `<div class="auth">
+      <aside class="auth-side">
+        <div class="brand" style="padding:0;color:#fff"><span class="logo" style="background:#fff">${icon.logo.replace('#fff', '#0B6E5A')}</span>Kwiq Stock</div>
+        <div class="stack" style="gap:28px">
+          <h2>Know exactly what's on your shelves.</h2>
+          <ul>
+            <li>${icon.check}Record stock received, sold and moved</li>
+            <li>${icon.check}Run stock takes with barcode scanning</li>
+            <li>${icon.check}See low stock before you run out</li>
+          </ul>
+        </div>
+        <span style="font-size:13px;color:var(--brand-on)">Your account and stock data are stored in this browser.</span>
+      </aside>
+      <div class="auth-main"><div class="auth-card">
+        <div class="brand mobile-only" style="padding:0"><span class="logo">${icon.logo}</span>Kwiq Stock</div>
+        ${inner}
+      </div></div>
+    </div>`;
+  }
+  function viewLogin() {
+    const hasUsers = Object.keys(users()).length > 0;
+    return authShell(`
+      <div class="stack" style="gap:6px"><h1>Welcome back</h1><span class="sub">Log in to manage your stock.</span></div>
+      <form id="loginForm" novalidate>
+        <label class="field">Email<input class="input" name="email" type="email" autocomplete="email" required placeholder="you@business.com"></label>
+        ${pwField('password', 'Password', 'current-password')}
+        <div class="err" id="authErr" role="alert"></div>
+        <button class="btn primary" type="submit" style="height:50px">Log in</button>
+      </form>
+      <p class="switch">${hasUsers ? 'New to Kwiq Stock?' : 'No account yet?'} <a href="#/signup">Create an account</a></p>`);
+  }
+  function viewSignup() {
+    return authShell(`
+      <div class="stack" style="gap:6px"><h1>Create your account</h1><span class="sub">Set up your business in under a minute.</span></div>
+      <form id="signupForm" novalidate>
+        <label class="field">Your name<input class="input" name="name" autocomplete="name" required maxlength="50" placeholder="e.g. Maria Shikongo"></label>
+        <label class="field">Business name<input class="input" name="business" autocomplete="organization" required maxlength="60" placeholder="e.g. Shikongo General Dealer"></label>
+        <label class="field">Email<input class="input" name="email" type="email" autocomplete="email" required placeholder="you@business.com"></label>
+        ${pwField('password', 'Password', 'new-password', 'At least 8 characters.')}
+        <div class="err" id="authErr" role="alert"></div>
+        <button class="btn primary" type="submit" style="height:50px">Create account</button>
+      </form>
+      <p class="switch">Already have an account? <a href="#/login">Log in</a></p>`);
+  }
+
+  async function doLogin(f) {
+    const d = Object.fromEntries(new FormData(f));
+    const email = (d.email || '').trim().toLowerCase();
+    const err = $('#authErr');
+    if (!email || !d.password) { err.textContent = 'Enter your email and password.'; return; }
+    const u = users()[email];
+    if (!u || u.hash !== await hashPassword(d.password, u.salt)) { err.textContent = 'Email or password is incorrect.'; return; }
+    startSession(email);
+    go('#/home');
+    toast('Welcome back, ' + u.name.split(' ')[0]);
+  }
+  async function doSignup(f) {
+    const d = Object.fromEntries(new FormData(f));
+    const name = (d.name || '').trim(), business = (d.business || '').trim(), email = (d.email || '').trim().toLowerCase();
+    const err = $('#authErr');
+    if (!name || !business) { err.textContent = 'Enter your name and business name.'; return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = 'Enter a valid email address.'; return; }
+    if ((d.password || '').length < 8) { err.textContent = 'Password must be at least 8 characters.'; return; }
+    const all = users();
+    if (all[email]) { err.textContent = 'An account with this email already exists. Log in instead.'; return; }
+    const salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    all[email] = { name, business, salt, hash: await hashPassword(d.password, salt), created: Date.now() };
+    store(USERS_KEY, all);
+    store(dataKey(email), emptyDb(business));
+    startSession(email);
+    go('#/home');
+    toast('Account created. Add your first product to get started.');
+  }
+
+  // ---------------------------------------------------------------- app views
+  const ui = { cat: 'All', q: '', sort: 'low', recType: 'receive', recPid: null, recQty: 1, period: 'week', countCat: 'All', filter: null };
 
   function viewHome() {
     const value = db.products.reduce((s, p) => s + onHand(p) * p.cost, 0);
@@ -339,21 +477,20 @@ h2{margin:0;font-size:17px;font-weight:800}
     const out = db.products.filter((p) => status(p) === 'out');
     const weekAgo = Date.now() - 7 * DAY;
     const soldWeek = db.movements.filter((m) => m.type === 'issue' && m.at > weekAgo).reduce((s, m) => s - m.delta, 0);
-    const running = db.products.filter((p) => status(p) !== 'ok').sort((a, b) => onHand(a) / a.min - onHand(b) / b.min).slice(0, 5);
+    const running = db.products.filter((p) => status(p) !== 'ok').sort((a, b) => onHand(a) / Math.max(1, a.min) - onHand(b) / Math.max(1, b.min)).slice(0, 5);
     const recent = db.movements.slice(0, 6);
     const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    const first = me.name.split(' ')[0];
+    const noProducts = db.products.length === 0;
     return `
       <div class="between">
-        <div class="stack" style="gap:2px"><span class="sub">${today}</span><h1>Main Store</h1></div>
-        <div class="row" style="gap:10px">
-          <a class="iconbtn mobile-only" href="#/products" aria-label="Search products">${icon.search}</a>
-          <span class="iconbtn" style="background:var(--brand);color:#fff;border:none;font-weight:800" aria-label="Signed in as you">You</span>
-        </div>
+        <div class="stack grow" style="gap:2px"><span class="sub">${today} · Hi ${esc(first)}</span><h1 class="ellipsis">${esc(db.settings.business)}</h1></div>
+        <a class="avatar mobile-only" href="#/settings" aria-label="Settings and profile" style="width:44px;height:44px;border-radius:14px">${esc(initials(me.name))}</a>
       </div>
       <section class="hero" aria-label="Stock summary">
-        <div class="between" style="align-items:flex-start">
+        <div class="between" style="align-items:flex-start;flex-wrap:wrap">
           <div class="stack" style="gap:4px"><span style="font-size:13px;color:var(--brand-on);font-weight:600">Stock value on hand (at cost)</span><span class="big">${money(value)}</span></div>
-          <span class="badge" style="background:#fff;color:var(--brand)">${fmtNum(soldWeek)} units sold · 7 days</span>
+          <span class="badge" style="background:#fff;color:var(--brand)">${fmtNum(soldWeek)} units issued · 7 days</span>
         </div>
         <div class="kpis">
           <a href="#/products"><b>${db.products.length}</b><span>Products</span></a>
@@ -361,6 +498,16 @@ h2{margin:0;font-size:17px;font-weight:800}
           <a href="#/products?f=out"><b>${out.length}</b><span>Out of stock</span></a>
         </div>
       </section>
+      ${noProducts ? `
+      <section class="card pad welcome">
+        <h2>Get started</h2>
+        <ol class="steps">
+          <li><span>1</span>Add the products you stock, with prices and a minimum level.</li>
+          <li><span>2</span>Record stock as it arrives and as it is sold or used.</li>
+          <li><span>3</span>Run a stock take to check shelves against the system.</li>
+        </ol>
+        <button class="btn primary" type="button" data-action="add-product">${icon.plus}Add your first product</button>
+      </section>` : ''}
       <section class="actions" aria-label="Quick actions">
         <a href="#/record?t=receive"><span style="background:var(--brand-tint);color:var(--brand)">${icon.in}</span>Receive</a>
         <a href="#/record?t=issue"><span style="background:var(--out-tint);color:var(--out)">${icon.out}</span>Issue</a>
@@ -370,18 +517,17 @@ h2{margin:0;font-size:17px;font-weight:800}
       <div class="grid-cards">
         <section class="stack">
           <div class="between"><h2>Running low</h2><a href="#/reports" style="font-weight:700;font-size:14px">Reorder list</a></div>
-          <div class="card list">${running.length ? running.map(rowLow).join('') : '<div class="empty">Everything is above its minimum level.</div>'}</div>
+          <div class="card list">${running.length ? running.map(rowLow).join('') : `<div class="empty">${noProducts ? 'Products below their minimum level will appear here.' : 'Everything is above its minimum level.'}</div>`}</div>
         </section>
         <section class="stack">
-          <div class="between"><h2>Recent activity</h2><a href="#/reports" style="font-weight:700;font-size:14px">All movements</a></div>
-          <div class="card list">${recent.map((m) => rowMove(m, true)).join('')}</div>
+          <div class="between"><h2>Recent activity</h2><a href="#/reports" style="font-weight:700;font-size:14px">Reports</a></div>
+          <div class="card list">${recent.length ? recent.map((m) => rowMove(m, true)).join('') : '<div class="empty">No stock movements yet. Receive or issue stock and it will show here.</div>'}</div>
         </section>
-      </div>
-      <p class="notice mobile-only">Interactive prototype · sample data saved in this browser · <button type="button" data-action="reset">Reset demo data</button></p>`;
+      </div>`;
   }
 
   function rowLow(p) {
-    const pct = Math.min(100, Math.round((onHand(p) / p.min) * 100));
+    const pct = Math.min(100, Math.round((onHand(p) / Math.max(1, p.min)) * 100));
     const col = status(p) === 'out' ? 'var(--bad)' : pct < 25 ? 'var(--out)' : '#E8890C';
     return `<a href="#/product/${p.id}">${thumb(p)}
       <span class="grow stack" style="gap:6px"><span class="name ellipsis">${esc(p.name)}</span><span class="bar"><span style="width:${Math.max(3, pct)}%;background:${col}"></span></span></span>
@@ -398,26 +544,37 @@ h2{margin:0;font-size:17px;font-weight:800}
     const sub = (withName ? esc(m.ref || kind[3]) + ' · ' : '') + esc(LOCS[m.loc] || '') + ' · ' + timeAgo(m.at) + ' · ' + esc(m.user);
     const sign = m.delta > 0 ? '+' : m.delta < 0 ? '−' : '±';
     const color = m.delta > 0 ? 'var(--brand)' : m.delta < 0 ? 'var(--out)' : 'var(--muted)';
-    const tag = p ? 'a href="#/product/' + p.id + '"' : 'div';
-    return `<${tag}><span class="thumb" style="width:38px;height:38px;border-radius:10px;background:${kind[1]};color:${kind[2]}">${icon[kind[0]]}</span>
+    const open = p ? `<a href="#/product/${p.id}">` : '<div>';
+    const close = p ? '</a>' : '</div>';
+    return `${open}<span class="thumb" style="width:38px;height:38px;border-radius:10px;background:${kind[1]};color:${kind[2]}">${icon[kind[0]]}</span>
       <span class="grow stack" style="gap:1px"><span class="name ellipsis" style="font-size:14px">${title}</span><span class="meta ellipsis">${sub}</span></span>
-      <span class="qty" style="font-size:15px;color:${color}">${sign}${Math.abs(m.delta)}</span></${tag.split(' ')[0]}>`;
+      <span class="qty" style="font-size:15px;color:${color}">${sign}${Math.abs(m.delta)}</span>${close}`;
   }
 
   function viewProducts(params) {
-    if (params.f) { ui.filter = params.f; }
-    const cats = ['All', ...new Set(db.products.map((p) => p.cat))];
+    if (params.f) ui.filter = params.f;
+    const cats = ['All', ...categories()];
+    if (!cats.includes(ui.cat)) ui.cat = 'All';
     const q = ui.q.trim().toLowerCase();
     let list = db.products.filter((p) => (ui.cat === 'All' || p.cat === ui.cat)
       && (!ui.filter || status(p) === ui.filter)
-      && (!q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || p.barcode.includes(q)));
+      && (!q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || (p.barcode || '').includes(q)));
     const sorts = {
-      low: (a, b) => onHand(a) / a.min - onHand(b) / b.min,
+      low: (a, b) => onHand(a) / Math.max(1, a.min) - onHand(b) / Math.max(1, b.min),
       name: (a, b) => a.name.localeCompare(b.name),
       value: (a, b) => onHand(b) * b.cost - onHand(a) * a.cost
     };
     list = list.sort(sorts[ui.sort]);
     const filterLabel = ui.filter === 'low' ? 'Low stock' : ui.filter === 'out' ? 'Out of stock' : '';
+    if (!db.products.length) {
+      return `<div class="between"><h1>Products</h1></div>
+        <div class="card empty" style="padding:40px 20px;display:flex;flex-direction:column;align-items:center;gap:14px">
+          <span class="thumb" style="width:60px;height:60px;border-radius:18px;background:var(--brand-tint);color:var(--brand)">${icon.box}</span>
+          <b style="font-size:17px;color:var(--ink)">No products yet</b>
+          <span>Add the items you sell or store. You can set prices, a minimum level and opening stock.</span>
+          <button class="btn primary" type="button" data-action="add-product">${icon.plus}Add product</button>
+        </div>`;
+    }
     return `
       <div class="between"><h1>Products</h1><button class="btn primary" type="button" data-action="add-product">${icon.plus}New product</button></div>
       <div class="row" style="gap:10px">
@@ -452,29 +609,29 @@ h2{margin:0;font-size:17px;font-weight:800}
       <div class="between">
         <a class="iconbtn" href="#/products" aria-label="Back to products">${icon.back}</a>
         <span style="font-weight:800">Product</span>
-        <button class="iconbtn" type="button" data-action="edit-min" data-id="${p.id}" aria-label="Edit minimum level"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+        <button class="iconbtn" type="button" data-action="edit-product" data-id="${p.id}" aria-label="Edit product"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
       </div>
       <div class="grid-cards">
         <section class="card pad stack" style="gap:14px">
           <div class="row" style="gap:14px">${thumb(p, 60)}
             <div class="stack grow" style="gap:4px"><span style="font-size:20px;font-weight:800;letter-spacing:-.3px">${esc(p.name)}</span>
-              <span class="meta mono">${esc(p.sku)} · ${esc(p.barcode)}</span><span>${statusBadge(p)}</span></div>
+              <span class="meta mono">${esc(p.sku)}${p.barcode ? ' · ' + esc(p.barcode) : ''}</span><span>${statusBadge(p)}</span></div>
           </div>
           <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
             <div style="background:var(--ground);border-radius:12px;padding:10px"><div class="sub">On hand</div><div class="qty" style="font-size:24px;color:${color}">${onHand(p)}</div></div>
             <div style="background:var(--ground);border-radius:12px;padding:10px"><div class="sub">Minimum</div><div class="qty" style="font-size:24px">${p.min}</div></div>
-            <div style="background:var(--ground);border-radius:12px;padding:10px"><div class="sub">Reorder</div><div class="qty" style="font-size:24px;color:var(--brand)">${reorderQty(p) ? '+' + reorderQty(p) : '—'}</div></div>
+            <div style="background:var(--ground);border-radius:12px;padding:10px"><div class="sub">Reorder</div><div class="qty" style="font-size:24px;color:var(--brand)">${status(p) !== 'ok' && reorderQty(p) ? '+' + reorderQty(p) : '—'}</div></div>
           </div>
           <div class="grid2" style="font-size:14px">
             <div class="stack" style="gap:2px"><span class="meta">Selling price</span><b>${money2(p.price)}</b></div>
             <div class="stack" style="gap:2px"><span class="meta">Cost price</span><b>${money2(p.cost)}</b></div>
             <div class="stack" style="gap:2px"><span class="meta">Category</span><b>${esc(p.cat)}</b></div>
-            <div class="stack" style="gap:2px"><span class="meta">Supplier</span><b>${esc(p.supplier)}</b></div>
+            <div class="stack" style="gap:2px"><span class="meta">Supplier</span><b>${esc(p.supplier || '—')}</b></div>
           </div>
           <div class="stack" style="gap:8px"><h2 style="font-size:15px">Stock by location</h2>
             <div class="card list">
-              <div><span class="grow name" style="font-size:14px">${LOCS.main}</span><span class="qty">${p.stock.main}</span></div>
-              <div><span class="grow name" style="font-size:14px">${LOCS.back}</span><span class="qty">${p.stock.back}</span></div>
+              <div><span class="grow name" style="font-size:14px">${esc(LOCS.main)}</span><span class="qty">${p.stock.main}</span></div>
+              <div><span class="grow name" style="font-size:14px">${esc(LOCS.back)}</span><span class="qty">${p.stock.back}</span></div>
             </div>
           </div>
           <div class="grid2">
@@ -484,20 +641,31 @@ h2{margin:0;font-size:17px;font-weight:800}
         </section>
         <section class="stack">
           <h2>Movement history</h2>
-          <div class="card list">${moves.length ? moves.map((m) => rowMove(m, false)).join('') : '<div class="empty">No movements yet.</div>'}</div>
+          <div class="card list">${moves.length ? moves.map((m) => rowMove(m, false)).join('') : '<div class="empty">No movements yet for this product.</div>'}</div>
         </section>
       </div>`;
   }
 
+  function needProducts(title) {
+    return `<div class="between"><h1>${title}</h1></div>
+      <div class="card empty" style="padding:40px 20px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <span class="thumb" style="width:60px;height:60px;border-radius:18px;background:var(--brand-tint);color:var(--brand)">${icon.box}</span>
+        <b style="font-size:17px;color:var(--ink)">Add a product first</b>
+        <span>You need at least one product before you can ${title === 'Stock take' ? 'count stock' : 'record stock movements'}.</span>
+        <button class="btn primary" type="button" data-action="add-product">${icon.plus}Add product</button>
+      </div>`;
+  }
+
   function viewRecord(params) {
+    if (!db.products.length) return needProducts('Record stock');
     if (params.t) ui.recType = params.t;
     if (params.p) ui.recPid = params.p;
     if (!ui.recPid || !product(ui.recPid)) ui.recPid = db.products[0].id;
     const p = product(ui.recPid);
     const types = [['receive', 'Receive'], ['issue', 'Issue'], ['adjust', 'Adjust'], ['transfer', 'Transfer']];
     const t = ui.recType;
-    const refLabel = { receive: 'GRV / invoice no.', issue: 'Reason', adjust: 'Reason', transfer: 'Note' }[t];
-    const refPh = { receive: 'GRV-' + db.nextGrv, issue: 'Sale, damaged, expired…', adjust: 'Recount, correction…', transfer: 'Restock shelves' }[t];
+    const refLabel = { receive: 'GRV / invoice no.', issue: 'Reason', adjust: 'Reason' }[t];
+    const refPh = { receive: 'GRV-' + db.nextGrv, issue: 'Sale, damaged, expired…', adjust: 'Recount, correction…' }[t];
     return `
       <div class="between">
         <a class="iconbtn" href="#/home" aria-label="Close">${icon.close}</a>
@@ -512,7 +680,7 @@ h2{margin:0;font-size:17px;font-weight:800}
           <select class="input" id="recPid">${db.products.slice().sort((a, b) => a.name.localeCompare(b.name)).map((x) => `<option value="${x.id}"${x.id === p.id ? ' selected' : ''}>${esc(x.name)} — ${onHand(x)} on hand</option>`).join('')}</select>
         </label>
         <div class="card pad stack" style="gap:14px;align-items:center">
-          <span class="sub" id="qtyLabel">${t === 'adjust' ? 'Counted quantity' : 'Quantity'}</span>
+          <span class="sub">${t === 'adjust' ? 'Counted quantity' : 'Quantity'}</span>
           <div class="stepper">
             <button type="button" data-action="qty" data-v="-1" aria-label="Decrease quantity">${icon.minus}</button>
             <label><span class="sr">Quantity</span><input id="recQty" type="number" inputmode="numeric" min="0" value="${ui.recQty}"></label>
@@ -526,10 +694,10 @@ h2{margin:0;font-size:17px;font-weight:800}
         </div>
         <div class="grid2">
           <label class="field">${t === 'transfer' ? 'From' : 'Location'}
-            <select class="input" id="recLoc"><option value="main">${LOCS.main}</option><option value="back">${LOCS.back}</option></select></label>
+            <select class="input" id="recLoc"><option value="main">${esc(LOCS.main)}</option><option value="back">${esc(LOCS.back)}</option></select></label>
           ${t === 'transfer'
-            ? `<label class="field">To<select class="input" id="recTo"><option value="back">${LOCS.back}</option><option value="main">${LOCS.main}</option></select></label>`
-            : `<label class="field">${refLabel}<input class="input" id="recRef" type="text" placeholder="${esc(refPh)}"></label>`}
+            ? `<label class="field">To<select class="input" id="recTo"><option value="back">${esc(LOCS.back)}</option><option value="main">${esc(LOCS.main)}</option></select></label>`
+            : `<label class="field">${refLabel}<input class="input" id="recRef" type="text" maxlength="40" placeholder="${esc(refPh)}"></label>`}
         </div>
         <button class="btn primary" type="submit" style="height:52px;font-size:16px">${icon.check}Save ${types.find((x) => x[0] === t)[1].toLowerCase()}</button>
       </form>`;
@@ -592,20 +760,22 @@ h2{margin:0;font-size:17px;font-weight:800}
   }
 
   function viewCount() {
+    if (!db.products.length) return needProducts('Stock take');
     const c = db.count;
     if (!c) {
-      const cats = ['All', ...new Set(db.products.map((p) => p.cat))];
-      const last = db.movements.find((m) => m.type === 'adjust');
+      const cats = ['All', ...categories()];
+      if (!cats.includes(ui.countCat)) ui.countCat = 'All';
+      const last = db.movements.find((m) => m.type === 'adjust' && m.ref === 'Stock take');
       return `
-        <div class="stack" style="gap:4px"><span class="sub">Stock take · Main Store</span><h1>Start a stock take</h1></div>
+        <div class="stack" style="gap:4px"><span class="sub">Stock take · ${esc(LOCS.main)}</span><h1>Start a stock take</h1></div>
         <div class="card pad stack" style="gap:14px;max-width:620px">
           <p style="margin:0;font-size:15px;line-height:1.55;color:var(--muted)">Count what is physically on the shelves. Kwiq Stock compares your counts with the system and posts any differences as adjustments when you finish.</p>
           <div class="stack" style="gap:8px"><span class="sub">What do you want to count?</span>
             <div class="chips" role="group" aria-label="Count scope">${cats.map((x) => `<button type="button" class="chip" aria-pressed="${x === ui.countCat}" data-action="count-cat" data-v="${esc(x)}">${esc(x === 'All' ? 'Everything' : x)}</button>`).join('')}</div>
           </div>
-          <span class="meta">${db.products.filter((p) => ui.countCat === 'All' || p.cat === ui.countCat).length} products · Main Store shelves</span>
+          <span class="meta">${db.products.filter((p) => ui.countCat === 'All' || p.cat === ui.countCat).length} products · ${esc(LOCS.main)}</span>
           <button class="btn primary" type="button" data-action="count-start" style="height:52px">Start counting</button>
-          ${last ? `<span class="meta">Last adjustment: ${timeAgo(last.at)}</span>` : ''}
+          <span class="meta">${last ? 'Last stock take posted ' + timeAgo(last.at) : 'No stock takes yet.'}</span>
         </div>`;
     }
     const items = c.items.map((id) => product(id)).filter(Boolean);
@@ -640,7 +810,7 @@ h2{margin:0;font-size:17px;font-weight:800}
     const diff = has ? v - p.stock.main : 0;
     const varTxt = !has ? '—' : diff === 0 ? 'OK' : (diff > 0 ? '+' : '−') + Math.abs(diff);
     const varCol = !has ? 'var(--muted)' : diff === 0 ? 'var(--brand)' : 'var(--out)';
-    return `<div data-row="${p.id}" class="${c.last === p.id ? 'row hl' : ''}">
+    return `<div data-row="${p.id}" class="${c.last === p.id ? 'hl' : ''}">
       <span class="grow stack" style="gap:2px"><span class="name ellipsis" style="font-size:14px">${esc(p.name)}</span><span class="meta mono">${esc(p.sku)} · system ${p.stock.main}</span></span>
       <span class="counter">
         <button type="button" data-action="cnt" data-id="${p.id}" data-v="-1" aria-label="Remove one ${esc(p.name)}">−</button>
@@ -688,8 +858,9 @@ h2{margin:0;font-size:17px;font-weight:800}
     const top = Object.entries(sales).sort((a, b) => b[1] - a[1]).slice(0, 5);
     const topMax = top.length ? top[0][1] : 1;
     const reorder = db.products.filter((p) => status(p) !== 'ok').sort((a, b) => onHand(a) - onHand(b));
+    const reorderCost = reorder.reduce((s, p) => s + reorderQty(p) * p.cost, 0);
     return `
-      <div class="between"><h1>Reports</h1><button class="btn" type="button" data-action="export">${icon.download}Export CSV</button></div>
+      <div class="between"><h1>Reports</h1><button class="btn" type="button" data-action="export" ${db.movements.length ? '' : 'disabled'}>${icon.download}Export CSV</button></div>
       <div class="seg" role="radiogroup" aria-label="Period" style="grid-template-columns:repeat(2,minmax(0,1fr));max-width:360px">
         <button type="button" role="radio" aria-checked="${ui.period === 'week'}" data-action="period" data-v="week">Last 7 days</button>
         <button type="button" role="radio" aria-checked="${ui.period === 'month'}" data-action="period" data-v="month">Last 5 weeks</button>
@@ -707,14 +878,73 @@ h2{margin:0;font-size:17px;font-weight:800}
           <span class="sr">${buckets.map((b) => b.label + ': in ' + b.in + ', out ' + b.out).join('; ')}</span>
         </section>
         <section class="card pad stack" style="gap:12px">
-          <h2 style="font-size:15px">Top sellers</h2>
-          ${top.length ? top.map(([id, n]) => { const p = product(id); return `<a href="#/product/${id}" class="stack" style="gap:6px;color:var(--ink)"><span class="between" style="font-size:14px"><b class="ellipsis">${esc(p.name)}</b><span class="mono" style="font-weight:600">${n}</span></span><span class="bar"><span style="width:${Math.round((n / topMax) * 100)}%;background:var(--brand)"></span></span></a>`; }).join('') : '<div class="empty">No sales in this period.</div>'}
+          <h2 style="font-size:15px">Top issued products</h2>
+          ${top.length ? top.map(([id, n]) => { const p = product(id); return `<a href="#/product/${id}" class="stack" style="gap:6px;color:var(--ink)"><span class="between" style="font-size:14px"><b class="ellipsis">${esc(p.name)}</b><span class="mono" style="font-weight:600">${n}</span></span><span class="bar"><span style="width:${Math.round((n / topMax) * 100)}%;background:var(--brand)"></span></span></a>`; }).join('') : '<div class="empty">No stock issued in this period.</div>'}
         </section>
       </div>
       <section class="stack">
-        <div class="between"><h2>Reorder now</h2><span class="badge b-out">${reorder.length} item${reorder.length === 1 ? '' : 's'}</span></div>
-        <div class="card list">${reorder.length ? reorder.map((p) => `<a href="#/product/${p.id}">${thumb(p)}<span class="grow stack" style="gap:2px"><span class="name ellipsis" style="font-size:14px">${esc(p.name)}</span><span class="meta">${onHand(p)} on hand · min ${p.min} · ${esc(p.supplier)}</span></span><span class="stack" style="gap:2px;align-items:flex-end"><span class="qty" style="color:var(--brand)">+${reorderQty(p)}</span><span class="meta">${money(reorderQty(p) * p.cost)}</span></span></a>`).join('') : '<div class="empty">Nothing to reorder. All products are above minimum.</div>'}</div>
+        <div class="between"><h2>Reorder now</h2><span class="badge ${reorder.length ? 'b-out' : 'b-ok'}">${reorder.length} item${reorder.length === 1 ? '' : 's'}${reorder.length ? ' · ' + money(reorderCost) : ''}</span></div>
+        <div class="card list">${reorder.length ? reorder.map((p) => `<a href="#/product/${p.id}">${thumb(p)}<span class="grow stack" style="gap:2px"><span class="name ellipsis" style="font-size:14px">${esc(p.name)}</span><span class="meta">${onHand(p)} on hand · min ${p.min}${p.supplier && p.supplier !== '—' ? ' · ' + esc(p.supplier) : ''}</span></span><span class="stack" style="gap:2px;align-items:flex-end"><span class="qty" style="color:var(--brand)">+${reorderQty(p)}</span><span class="meta">${money(reorderQty(p) * p.cost)}</span></span></a>`).join('') : `<div class="empty">${db.products.length ? 'Nothing to reorder. All products are above their minimum level.' : 'Products that need reordering will appear here.'}</div>`}</div>
       </section>`;
+  }
+
+  function viewSettings() {
+    const s = db.settings;
+    const u = users()[me.email] || {};
+    const since = u.created ? new Date(u.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+    return `
+      <div class="stack" style="gap:4px"><h1>Settings</h1><span class="sub">Your profile, business and data.</span></div>
+      <div class="settings">
+        <section class="card pad stack" style="gap:14px">
+          <div class="row"><span class="avatar" style="width:56px;height:56px;border-radius:16px;font-size:18px">${esc(initials(me.name))}</span>
+            <div class="stack grow" style="gap:2px"><b style="font-size:17px" class="ellipsis">${esc(me.name)}</b><span class="meta ellipsis">${esc(me.email)}${since ? ' · member since ' + since : ''}</span></div></div>
+          <h2>Profile</h2>
+          <form id="profileForm" novalidate>
+            <label class="field">Your name<input class="input" name="name" required maxlength="50" value="${esc(me.name)}"></label>
+            <label class="field">Email<input class="input" name="email" type="email" value="${esc(me.email)}" readonly></label>
+            <div class="err" id="profileErr" role="alert"></div>
+            <button class="btn primary" type="submit">Save profile</button>
+          </form>
+        </section>
+        <section class="card pad stack" style="gap:14px">
+          <h2>Business</h2>
+          <form id="businessForm" novalidate>
+            <label class="field">Business name<input class="input" name="business" required maxlength="60" value="${esc(s.business)}"></label>
+            <div class="grid2">
+              <label class="field">Shop floor name<input class="input" name="locMain" required maxlength="30" value="${esc(s.locMain)}"></label>
+              <label class="field">Storeroom name<input class="input" name="locBack" required maxlength="30" value="${esc(s.locBack)}"></label>
+            </div>
+            <label class="field">Default minimum level for new products<input class="input" name="defaultMin" type="number" min="0" value="${s.defaultMin}"></label>
+            <div class="err" id="businessErr" role="alert"></div>
+            <button class="btn primary" type="submit">Save business details</button>
+          </form>
+        </section>
+        <section class="card pad stack" style="gap:14px">
+          <h2>Change password</h2>
+          <form id="passwordForm" novalidate>
+            ${pwField('current', 'Current password', 'current-password')}
+            ${pwField('next', 'New password', 'new-password', 'At least 8 characters.')}
+            <div class="err" id="passwordErr" role="alert"></div>
+            <button class="btn" type="submit">Update password</button>
+          </form>
+        </section>
+        <section class="card pad stack" style="gap:12px">
+          <h2>Data</h2>
+          <span class="meta" style="font-size:13px">${db.products.length} product${db.products.length === 1 ? '' : 's'} · ${db.movements.length} movement${db.movements.length === 1 ? '' : 's'} recorded. Data is stored in this browser.</span>
+          <div class="row" style="flex-wrap:wrap;gap:10px">
+            <button class="btn" type="button" data-action="export" ${db.movements.length ? '' : 'disabled'}>${icon.download}Export movements (CSV)</button>
+            <button class="btn" type="button" data-action="load-sample">Load sample products</button>
+            <button class="btn danger" type="button" data-action="clear-data" ${db.products.length || db.movements.length ? '' : 'disabled'}>Clear all stock data</button>
+          </div>
+        </section>
+        <section class="card pad stack" style="gap:12px">
+          <h2>Account</h2>
+          <div class="row" style="flex-wrap:wrap;gap:10px">
+            <button class="btn" type="button" data-action="logout">${icon.logout}Log out</button>
+            <button class="btn danger" type="button" data-action="delete-account">Delete account</button>
+          </div>
+        </section>
+      </div>`;
   }
 
   // ---------------------------------------------------------------- router
@@ -728,7 +958,15 @@ h2{margin:0;font-size:17px;font-weight:800}
   }
 
   function render(keepScroll) {
-    const { route, id, params } = parse();
+    let { route, id, params } = parse();
+    if (!me) {
+      if (route !== 'signup') route = 'login';
+      $('#view').innerHTML = route === 'signup' ? viewSignup() : viewLogin();
+      document.title = 'Kwiq Stock — ' + (route === 'signup' ? 'Create account' : 'Log in');
+      if (!keepScroll) window.scrollTo(0, 0);
+      return;
+    }
+    if (route === 'login' || route === 'signup') { location.replace('#/home'); return; }
     if (route !== 'products') ui.filter = null;
     let html;
     switch (route) {
@@ -737,17 +975,19 @@ h2{margin:0;font-size:17px;font-weight:800}
       case 'record': html = viewRecord(params); break;
       case 'count': html = viewCount(); break;
       case 'reports': html = viewReports(); break;
-      default: html = viewHome();
+      case 'settings': html = viewSettings(); break;
+      default: route = 'home'; html = viewHome();
     }
     $('#view').innerHTML = html;
-    const navKey = route === 'product' ? 'products' : (['products', 'record', 'count', 'reports'].includes(route) ? route : 'home');
+    $('#sideMe').innerHTML = `<span class="avatar">${esc(initials(me.name))}</span><span class="stack grow" style="gap:0"><b class="ellipsis" style="font-size:14px;color:var(--ink)">${esc(me.name)}</b><span class="meta ellipsis">${esc(db.settings.business)}</span></span>`;
+    const navKey = route === 'product' ? 'products' : route;
     document.querySelectorAll('[data-nav]').forEach((a) => {
       const on = a.dataset.nav === navKey;
       a.classList.toggle('active', on);
       if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
-    document.title = 'Kwiq Stock — ' + ({ products: 'Products', product: 'Product', record: 'Record stock', count: 'Stock take', reports: 'Reports' }[route] || 'Home');
-    if (route === 'record') recPreview();
+    document.title = 'Kwiq Stock — ' + ({ products: 'Products', product: 'Product', record: 'Record stock', count: 'Stock take', reports: 'Reports', settings: 'Settings' }[route] || 'Home');
+    if (route === 'record' && db.products.length) recPreview();
     if (!keepScroll) window.scrollTo(0, 0);
   }
 
@@ -757,18 +997,29 @@ h2{margin:0;font-size:17px;font-weight:800}
     if (!el) return;
     const a = el.dataset.action, v = el.dataset.v;
     if (a === 'close-modal') { if (e.target === el) closeModal(); return; }
+    if (a === 'close-modal-btn') { closeModal(); return; }
+    if (a === 'toggle-pw') {
+      const inp = el.parentElement.querySelector('input');
+      const show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      el.textContent = show ? 'Hide' : 'Show';
+      el.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      return;
+    }
+    if (!me) return;
     if (a === 'cat') { ui.cat = v; render(true); }
     if (a === 'clear-filter') { ui.filter = null; location.hash = '#/products'; }
     if (a === 'scan-search') {
-      const p = db.products[Math.floor(Math.random() * db.products.length)];
+      const withCode = db.products.filter((p) => p.barcode);
+      if (!withCode.length) { toast('No products with a barcode yet'); return; }
+      const p = withCode[Math.floor(Math.random() * withCode.length)];
       toast('Scanned ' + p.barcode);
       location.hash = '#/product/' + p.id;
     }
     if (a === 'rec-type') { ui.recType = v; render(true); }
     if (a === 'qty') {
       const inp = $('#recQty');
-      const n = parseInt(v, 10);
-      inp.value = Math.max(0, (parseInt(inp.value, 10) || 0) + n);
+      inp.value = Math.max(0, (parseInt(inp.value, 10) || 0) + parseInt(v, 10));
       recPreview();
     }
     if (a === 'count-cat') { ui.countCat = v; render(true); }
@@ -786,8 +1037,9 @@ h2{margin:0;font-size:17px;font-weight:800}
     if (a === 'scan-count') {
       const c = db.count;
       const next = c.items.find((id) => c.counts[id] == null) || c.items[Math.floor(Math.random() * c.items.length)];
-      const btn = $('#scanBtn'); btn.classList.add('on'); $('#scanText').textContent = 'Scanning…';
+      $('#scanBtn').classList.add('on'); $('#scanText').textContent = 'Scanning…';
       setTimeout(() => {
+        if (!db || !db.count) return;
         const p = product(next);
         const cur = c.counts[next];
         c.counts[next] = (cur == null ? 0 : cur) + 1; c.last = next; save(); render(true);
@@ -798,7 +1050,7 @@ h2{margin:0;font-size:17px;font-weight:800}
     if (a === 'count-finish') {
       const c = db.count; let posted = 0;
       Object.entries(c.counts).forEach(([id, n]) => {
-        const p = product(id); if (!p) return;
+        const p = product(id); if (!p || n == null) return;
         const delta = n - p.stock.main;
         if (delta !== 0) { p.stock.main = n; addMovement({ pid: id, type: 'adjust', delta, loc: 'main', ref: 'Stock take' }); posted++; }
       });
@@ -809,97 +1061,143 @@ h2{margin:0;font-size:17px;font-weight:800}
     }
     if (a === 'period') { ui.period = v; render(true); }
     if (a === 'export') exportCsv();
-    if (a === 'reset') {
-      if (confirmReset()) { try { localStorage.removeItem(STORE_KEY); } catch (err) { /* ignore */ } db = seed(); ui.recPid = null; render(); toast('Demo data reset'); }
+    if (a === 'add-product') openProductForm();
+    if (a === 'edit-product') openProductForm(el.dataset.id);
+    if (a === 'delete-product') deleteProduct(el.dataset.id);
+    if (a === 'logout') { endSession(); go('#/login'); toast('You have been logged out'); }
+    if (a === 'load-sample') {
+      if ((db.products.length || db.movements.length) && !window.confirm('Replace your current stock data with sample products?')) return;
+      db = sampleData(db); save(); ui.recPid = null; go('#/home'); toast('Sample products loaded');
     }
-    if (a === 'add-product') openAddProduct();
-    if (a === 'edit-min') openEditMin(el.dataset.id);
+    if (a === 'clear-data') {
+      if (!window.confirm('Delete all products and stock movements? This cannot be undone.')) return;
+      const settings = db.settings; db = emptyDb(settings.business); db.settings = settings; save(); ui.recPid = null; render(true); toast('All stock data cleared');
+    }
+    if (a === 'delete-account') {
+      if (!window.confirm('Delete your account and all its stock data from this browser?')) return;
+      const all = users(); delete all[me.email]; store(USERS_KEY, all); store(dataKey(me.email), undefined);
+      endSession(); go('#/signup'); toast('Account deleted');
+    }
   });
 
-  function confirmReset() { return window.confirm('Reset all demo data? Your recorded movements will be cleared.'); }
-
   document.addEventListener('input', (e) => {
+    if (!me) return;
     if (e.target.id === 'q') {
       ui.q = e.target.value;
       const pos = e.target.selectionStart;
       render(true);
-      const q = $('#q'); q.focus(); try { q.setSelectionRange(pos, pos); } catch (err) { /* ignore */ }
+      const q = $('#q'); if (q) { q.focus(); try { q.setSelectionRange(pos, pos); } catch (err) { /* ignore */ } }
     }
     if (e.target.id === 'recQty') recPreview();
     if (e.target.dataset && e.target.dataset.cnt) {
       const id = e.target.dataset.cnt; const c = db.count;
       const val = e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0);
-      c.counts[id] = val; if (val == null) delete c.counts[id];
+      if (val == null) delete c.counts[id]; else c.counts[id] = val;
       c.last = id; save();
     }
   });
   document.addEventListener('change', (e) => {
+    if (!me) return;
     if (e.target.id === 'sort') { ui.sort = e.target.value; render(true); }
     if (['recPid', 'recLoc', 'recTo'].includes(e.target.id)) recPreview();
     if (e.target.dataset && e.target.dataset.cnt) render(true);
   });
   document.addEventListener('submit', (e) => {
     e.preventDefault();
-    if (e.target.id === 'recForm') submitRecord();
-    if (e.target.id === 'addForm') saveNewProduct(e.target);
-    if (e.target.id === 'minForm') saveMin(e.target);
+    const f = e.target;
+    if (f.id === 'loginForm') doLogin(f);
+    if (f.id === 'signupForm') doSignup(f);
+    if (!me) return;
+    if (f.id === 'recForm') submitRecord();
+    if (f.id === 'productForm') saveProduct(f);
+    if (f.id === 'profileForm') saveProfile(f);
+    if (f.id === 'businessForm') saveBusiness(f);
+    if (f.id === 'passwordForm') savePassword(f);
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#modal').innerHTML) closeModal(); });
 
-  function openAddProduct() {
+  function openProductForm(id) {
+    const p = id ? product(id) : null;
+    const cats = categories();
+    const catDefault = p ? p.cat : (cats[0] || '');
     openModal(`
-      <div class="between"><h2>New product</h2><button class="iconbtn" type="button" data-action="close-modal-btn" aria-label="Close">${icon.close}</button></div>
-      <form id="addForm" class="stack" style="gap:12px" novalidate>
-        <label class="field">Product name<input class="input" name="name" required maxlength="60" placeholder="e.g. Peanut Butter 400g"></label>
+      <div class="between"><h2>${p ? 'Edit product' : 'New product'}</h2><button class="iconbtn" type="button" data-action="close-modal-btn" aria-label="Close">${icon.close}</button></div>
+      <form id="productForm" class="stack" style="gap:12px" data-id="${p ? p.id : ''}" novalidate>
+        <label class="field">Product name<input class="input" name="name" required maxlength="60" placeholder="e.g. Peanut Butter 400g" value="${p ? esc(p.name) : ''}"></label>
         <div class="grid2">
-          <label class="field">Category<select class="input" name="cat">${[...new Set(db.products.map((p) => p.cat))].map((c) => `<option>${esc(c)}</option>`).join('')}</select></label>
-          <label class="field">Minimum level<input class="input" name="min" type="number" min="0" value="20"></label>
-          <label class="field">Selling price (N$)<input class="input" name="price" type="number" min="0" step="0.01" required placeholder="0.00"></label>
-          <label class="field">Cost price (N$)<input class="input" name="cost" type="number" min="0" step="0.01" required placeholder="0.00"></label>
-          <label class="field">Opening stock<input class="input" name="qty" type="number" min="0" value="0"></label>
-          <label class="field">Supplier<input class="input" name="supplier" maxlength="40" placeholder="Supplier name"></label>
+          <label class="field">Category<input class="input" name="cat" list="catList" required maxlength="30" placeholder="e.g. Grocery" value="${esc(catDefault)}"><datalist id="catList">${cats.map((c) => `<option value="${esc(c)}"></option>`).join('')}</datalist></label>
+          <label class="field">Minimum level<input class="input" name="min" type="number" min="0" value="${p ? p.min : db.settings.defaultMin}"></label>
+          <label class="field">Selling price (N$)<input class="input" name="price" type="number" min="0" step="0.01" required placeholder="0.00" value="${p ? p.price : ''}"></label>
+          <label class="field">Cost price (N$)<input class="input" name="cost" type="number" min="0" step="0.01" required placeholder="0.00" value="${p ? p.cost : ''}"></label>
+          <label class="field">Barcode (optional)<input class="input" name="barcode" inputmode="numeric" maxlength="20" value="${p ? esc(p.barcode || '') : ''}"></label>
+          <label class="field">Supplier (optional)<input class="input" name="supplier" maxlength="40" value="${p && p.supplier !== '—' ? esc(p.supplier) : ''}"></label>
+          ${p ? '' : `<label class="field">Opening stock<input class="input" name="qty" type="number" min="0" value="0"></label>`}
         </div>
-        <div class="err" id="addErr" role="alert"></div>
-        <button class="btn primary" type="submit" style="height:50px">Add product</button>
+        <div class="err" id="productErr" role="alert"></div>
+        <button class="btn primary" type="submit" style="height:50px">${p ? 'Save changes' : 'Add product'}</button>
+        ${p ? `<button class="btn danger" type="button" data-action="delete-product" data-id="${p.id}">Delete product</button>` : ''}
       </form>`);
   }
-  document.addEventListener('click', (e) => { if (e.target.closest('[data-action="close-modal-btn"]')) closeModal(); });
 
-  function saveNewProduct(f) {
+  function saveProduct(f) {
     const d = Object.fromEntries(new FormData(f));
-    const name = (d.name || '').trim();
+    const err = $('#productErr');
+    const name = (d.name || '').trim(), cat = (d.cat || '').trim();
     const price = parseFloat(d.price), cost = parseFloat(d.cost);
-    if (!name) return ($('#addErr').textContent = 'Enter a product name.');
-    if (!(price > 0) || !(cost > 0)) return ($('#addErr').textContent = 'Enter selling and cost prices above zero.');
-    if (cost > price) return ($('#addErr').textContent = 'Cost price is higher than the selling price.');
-    const prefix = { Grocery: 'GRC', Dairy: 'DRY', Beverages: 'BEV', Household: 'HSH' }[d.cat] || 'GEN';
-    const n = db.products.length + 1;
-    const p = {
-      id: 'p' + Date.now().toString(36), name, cat: d.cat, price, cost, min: Math.max(0, parseInt(d.min, 10) || 0),
-      stock: { main: 0, back: 0 }, sku: prefix + '-' + String(100 + n * 7).padStart(4, '0'),
-      barcode: '600' + String(1234500000 + n * 97).slice(0, 10), supplier: (d.supplier || '').trim() || '—'
-    };
+    if (!name) { err.textContent = 'Enter a product name.'; return; }
+    if (!cat) { err.textContent = 'Enter a category.'; return; }
+    if (!(price > 0) || !(cost > 0)) { err.textContent = 'Enter selling and cost prices above zero.'; return; }
+    if (cost > price) { err.textContent = 'Cost price is higher than the selling price.'; return; }
+    const dup = db.products.find((x) => x.name.toLowerCase() === name.toLowerCase() && x.id !== f.dataset.id);
+    if (dup) { err.textContent = 'A product with this name already exists.'; return; }
+    const fields = { name, cat, price, cost, min: Math.max(0, parseInt(d.min, 10) || 0), barcode: (d.barcode || '').trim(), supplier: (d.supplier || '').trim() || '—' };
+    if (f.dataset.id) {
+      Object.assign(product(f.dataset.id), fields);
+      save(); closeModal(); render(true); toast(name + ' updated');
+      return;
+    }
+    const p = { id: 'p' + Date.now().toString(36), ...fields, stock: { main: 0, back: 0 }, sku: skuFor(cat, db.products.length + 1) };
     db.products.push(p);
     const qty = Math.max(0, parseInt(d.qty, 10) || 0);
     if (qty) { p.stock.main = qty; addMovement({ pid: p.id, type: 'receive', delta: qty, loc: 'main', ref: 'Opening stock' }); }
     save(); closeModal(); toast(name + ' added');
-    location.hash = '#/product/' + p.id;
+    if (location.hash === '#/product/' + p.id) render(); else location.hash = '#/product/' + p.id;
   }
 
-  function openEditMin(id) {
-    const p = product(id);
-    openModal(`
-      <div class="between"><h2>Minimum stock level</h2><button class="iconbtn" type="button" data-action="close-modal-btn" aria-label="Close">${icon.close}</button></div>
-      <p style="margin:0;color:var(--muted);font-size:14px">${esc(p.name)} shows as low stock below this level.</p>
-      <form id="minForm" class="stack" data-id="${p.id}" style="gap:12px">
-        <label class="field">Minimum level<input class="input" name="min" type="number" min="0" value="${p.min}"></label>
-        <button class="btn primary" type="submit" style="height:50px">Save</button>
-      </form>`);
+  function deleteProduct(id) {
+    const p = product(id); if (!p) return;
+    if (!window.confirm('Delete ' + p.name + ' and its movement history?')) return;
+    db.products = db.products.filter((x) => x.id !== id);
+    db.movements = db.movements.filter((m) => m.pid !== id);
+    if (db.count) { db.count.items = db.count.items.filter((x) => x !== id); delete db.count.counts[id]; }
+    save(); closeModal(); toast(p.name + ' deleted'); location.hash = '#/products';
   }
-  function saveMin(f) {
-    const p = product(f.dataset.id);
-    p.min = Math.max(0, parseInt(new FormData(f).get('min'), 10) || 0);
-    save(); closeModal(); render(true); toast('Minimum for ' + p.name + ' set to ' + p.min);
+
+  function saveProfile(f) {
+    const name = (new FormData(f).get('name') || '').trim();
+    if (!name) { $('#profileErr').textContent = 'Enter your name.'; return; }
+    const all = users(); all[me.email].name = name; store(USERS_KEY, all);
+    me.name = name; render(true); toast('Profile saved');
+  }
+  function saveBusiness(f) {
+    const d = Object.fromEntries(new FormData(f));
+    const business = (d.business || '').trim(), locMain = (d.locMain || '').trim(), locBack = (d.locBack || '').trim();
+    if (!business || !locMain || !locBack) { $('#businessErr').textContent = 'Fill in all business fields.'; return; }
+    if (locMain.toLowerCase() === locBack.toLowerCase()) { $('#businessErr').textContent = 'The two locations need different names.'; return; }
+    Object.assign(db.settings, { business, locMain, locBack, defaultMin: Math.max(0, parseInt(d.defaultMin, 10) || 0) });
+    LOCS = { main: locMain, back: locBack };
+    const all = users(); all[me.email].business = business; store(USERS_KEY, all); me.business = business;
+    save(); render(true); toast('Business details saved');
+  }
+  async function savePassword(f) {
+    const d = Object.fromEntries(new FormData(f));
+    const err = $('#passwordErr');
+    const all = users(); const u = all[me.email];
+    if (u.hash !== await hashPassword(d.current || '', u.salt)) { err.textContent = 'Current password is incorrect.'; return; }
+    if ((d.next || '').length < 8) { err.textContent = 'New password must be at least 8 characters.'; return; }
+    u.salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    u.hash = await hashPassword(d.next, u.salt);
+    store(USERS_KEY, all); f.reset(); err.textContent = ''; toast('Password updated');
   }
 
   function exportCsv() {
@@ -908,6 +1206,7 @@ h2{margin:0;font-size:17px;font-weight:800}
       const p = product(m.pid); if (!p) return;
       rows.push([new Date(m.at).toISOString(), p.name, p.sku, m.type, m.delta, LOCS[m.loc], m.ref, m.user]);
     });
+    if (rows.length === 1) { toast('No movements to export yet'); return; }
     const csv = rows.map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
     const link = document.createElement('a');
@@ -917,8 +1216,10 @@ h2{margin:0;font-size:17px;font-weight:800}
     toast('Exported ' + (rows.length - 1) + ' movements');
   }
 
+  // ---------------------------------------------------------------- start
   window.addEventListener('hashchange', () => render());
-  load();
+  const session = read(SESSION_KEY);
+  if (!(session && session.email && startSession(session.email))) endSession();
   render();
 })();
 </script>
