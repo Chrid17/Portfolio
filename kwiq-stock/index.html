@@ -1,0 +1,926 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kwiq Stock — Stock recording prototype</title>
+<meta name="description" content="Kwiq Stock: an interactive prototype of a stock recording app — receive and issue stock, run barcode stock takes and track movements.">
+<meta name="theme-color" content="#0B6E5A">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230B6E5A'/%3E%3Cpath d='M9 8v16M9 16l9-8M12.5 13l7 11' stroke='white' stroke-width='3' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#0B6E5A;--brand-dark:#08513F;--brand-tint:#E3F1EC;--brand-on:#CFE8E0;
+  --ink:#0F1A17;--muted:#56665F;--line:#E1E7E4;--line-soft:#EDF1EF;--ground:#F4F6F5;--card:#FFFFFF;
+  --out:#B4400B;--out-tint:#FDEEE4;--warn:#8A4B00;--warn-tint:#FFF1DB;--bad:#B42318;--bad-tint:#FDE8E7;
+  --blue:#2F54B8;--blue-tint:#E8EEFB;--purple:#6B3FA0;--purple-tint:#F1EAF9;--amber-tint:#FFF4E0;--amber:#9A5B00;
+  --radius:16px;--mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Manrope',system-ui,-apple-system,sans-serif;background:var(--ground);color:var(--ink);-webkit-font-smoothing:antialiased}
+a{color:var(--brand);text-decoration:none}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid #5FD3B3;outline-offset:2px}
+.mono{font-family:var(--mono)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Layout */
+.app{display:flex;min-height:100vh}
+.sidebar{display:none}
+.main{flex:1;min-width:0;padding:20px 20px 110px}
+.content{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.bottomnav{position:fixed;left:0;right:0;bottom:0;height:calc(76px + env(safe-area-inset-bottom));padding:0 6px env(safe-area-inset-bottom);background:var(--card);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);align-items:center;z-index:20}
+.bottomnav a{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--muted);padding:6px 0}
+.bottomnav a.active{color:var(--brand);font-weight:800}
+.bottomnav .fab{width:54px;height:54px;border-radius:18px;background:var(--brand);display:flex;align-items:center;justify-content:center;margin-top:-22px;box-shadow:0 8px 20px rgba(11,110,90,.35)}
+@media (min-width:900px){
+  .sidebar{display:flex;flex-direction:column;gap:6px;width:240px;flex-shrink:0;background:var(--card);border-right:1px solid var(--line);padding:22px 14px;position:sticky;top:0;height:100vh}
+  .bottomnav{display:none}
+  .main{padding:28px 36px 48px}
+  .mobile-only{display:none !important}
+}
+@media (max-width:899px){.desktop-only{display:none !important}}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;font-weight:800;font-size:18px;letter-spacing:-.3px}
+.logo{width:36px;height:36px;border-radius:10px;background:var(--brand);display:flex;align-items:center;justify-content:center}
+.sidebar a{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;color:var(--muted);font-weight:700;font-size:15px}
+.sidebar a:hover{background:var(--ground);color:var(--ink)}
+.sidebar a.active{background:var(--brand-tint);color:var(--brand)}
+.sidebar .cta{margin-top:10px;background:var(--brand);color:#fff;justify-content:center}
+.sidebar .cta:hover{background:var(--brand-dark);color:#fff}
+.sidebar .foot{margin-top:auto;font-size:12px;color:var(--muted);padding:8px;line-height:1.5}
+
+/* Components */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.pad{padding:16px}
+.row{display:flex;align-items:center;gap:12px}
+.between{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.stack{display:flex;flex-direction:column;gap:10px}
+h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.5px}
+h2{margin:0;font-size:17px;font-weight:800}
+.sub{font-size:13px;color:var(--muted);font-weight:600}
+.btn{height:46px;padding:0 16px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-weight:700;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:8px;color:var(--ink)}
+.btn:hover{border-color:#C9D3CE}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-dark)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.iconbtn{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--card);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.b-ok{background:var(--brand-tint);color:var(--brand)}
+.b-low{background:var(--warn-tint);color:var(--warn)}
+.b-out{background:var(--bad-tint);color:var(--bad)}
+.thumb{width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+.list > *{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line-soft);color:var(--ink)}
+.list > *:last-child{border-bottom:none}
+.list > a:hover{background:#FAFBFA}
+.grow{flex:1;min-width:0}
+.ellipsis{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.name{font-size:15px;font-weight:700}
+.meta{font-size:12px;color:var(--muted)}
+.qty{font-family:var(--mono);font-weight:600;font-size:16px}
+.bar{height:6px;background:var(--line-soft);border-radius:3px;overflow:hidden}
+.bar > span{display:block;height:100%;border-radius:3px}
+.seg{display:grid;gap:4px;padding:4px;background:#E4EAE7;border-radius:14px}
+.seg button{height:40px;border:none;border-radius:11px;background:transparent;font-weight:700;font-size:13px;color:#46554F}
+.seg button[aria-checked="true"]{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(15,26,23,.12)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:700;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.field{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;color:var(--muted)}
+.input{height:46px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:15px;color:var(--ink);width:100%}
+.input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(11,110,90,.15)}
+.search{display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);flex:1}
+.search input{flex:1;border:none;outline:none;background:transparent;font-size:15px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.grid-cards{display:grid;grid-template-columns:1fr;gap:18px}
+@media (min-width:900px){.grid-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:14px}
+.err{color:var(--bad);font-size:13px;font-weight:600}
+
+/* Home */
+.hero{background:var(--brand);color:#fff;border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:16px}
+.hero .big{font-size:32px;font-weight:800;letter-spacing:-.6px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kpis a{background:rgba(255,255,255,.12);border-radius:12px;padding:10px 12px;color:#fff;display:flex;flex-direction:column;gap:2px}
+.kpis a:hover{background:rgba(255,255,255,.2)}
+.kpis b{font-size:22px}
+.kpis span{font-size:12px;color:var(--brand-on)}
+.actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.actions a{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--ink);font-size:12px;font-weight:700}
+.actions a > span{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;transition:transform .15s}
+.actions a:hover > span{transform:translateY(-2px)}
+@media (min-width:900px){.actions a{flex-direction:row;justify-content:flex-start;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;font-size:14px}.actions a > span{width:44px;height:44px;border-radius:12px}}
+
+/* Record */
+.stepper{display:flex;align-items:center;justify-content:center;gap:20px}
+.stepper button{width:54px;height:54px;border-radius:16px;border:1px solid var(--line);background:var(--ground);display:flex;align-items:center;justify-content:center}
+.stepper button.plus{background:var(--brand);border-color:var(--brand)}
+.stepper input{width:120px;text-align:center;font-family:var(--mono);font-size:42px;font-weight:600;border:none;background:transparent;color:var(--ink)}
+.stepper input:focus{outline:none}
+.quick{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.quick button{height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font-family:var(--mono);font-weight:600;font-size:13px}
+
+/* Scan */
+.scan{height:130px;border-radius:18px;background:var(--ink);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;border:none;width:100%;font-weight:700;font-size:14px;overflow:hidden}
+.scan i{position:absolute;width:26px;height:26px;border-color:#5FD3B3;border-style:solid;border-width:0}
+.scan .tl{top:18px;left:22%;border-top-width:3px;border-left-width:3px;border-radius:6px 0 0 0}
+.scan .tr{top:18px;right:22%;border-top-width:3px;border-right-width:3px;border-radius:0 6px 0 0}
+.scan .bl{bottom:18px;left:22%;border-bottom-width:3px;border-left-width:3px;border-radius:0 0 0 6px}
+.scan .br{bottom:18px;right:22%;border-bottom-width:3px;border-right-width:3px;border-radius:0 0 6px 0}
+.scan .laser{position:absolute;left:22%;right:22%;height:2px;background:#5FD3B3;box-shadow:0 0 10px #5FD3B3;top:50%;animation:laser 1.6s ease-in-out infinite;opacity:0}
+.scan.on .laser{opacity:1}
+@keyframes laser{0%,100%{top:28%}50%{top:72%}}
+.counter{display:flex;align-items:center;gap:6px}
+.counter button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--ground);font-weight:800;font-size:16px}
+.counter button.plus{background:var(--brand);border-color:var(--brand);color:#fff}
+.counter input{width:52px;height:34px;text-align:center;border:1px solid var(--line);border-radius:10px;font-family:var(--mono);font-weight:600;font-size:15px}
+.row.hl{background:#F2FAF7}
+
+/* Reports */
+.chart{height:170px;display:grid;gap:8px;align-items:end}
+.chart .col{display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.chart .bars{display:flex;align-items:flex-end;gap:3px;height:140px}
+.chart .bars span{width:12px;border-radius:4px;min-height:3px}
+.chart .lbl{font-size:11px;color:var(--muted);font-weight:600}
+.legend{display:flex;gap:14px;font-size:12px;font-weight:600;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* Modal + toast */
+.overlay{position:fixed;inset:0;background:rgba(15,26,23,.45);display:flex;align-items:flex-end;justify-content:center;z-index:40}
+.sheet{background:#fff;width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px;display:flex;flex-direction:column;gap:14px}
+@media (min-width:640px){.overlay{align-items:center}.sheet{border-radius:22px}}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 16px;border-radius:12px;font-weight:600;font-size:14px;opacity:0;transition:.25s;z-index:60;max-width:calc(100% - 32px);display:flex;gap:10px;align-items:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (min-width:900px){.toast{bottom:28px}}
+.notice{font-size:12px;color:var(--muted);text-align:center;padding:6px 0}
+.notice button{border:none;background:none;color:var(--brand);font-weight:700;font-size:12px;padding:0;text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar" aria-label="Main">
+    <div class="brand"><span class="logo"><svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 6v20M9 16l10-9M12.5 12.5l8 13.5" stroke="#fff" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg></span>Kwiq Stock</div>
+    <a href="#/home" data-nav="home"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Home</a>
+    <a href="#/products" data-nav="products"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/></svg>Products</a>
+    <a href="#/count" data-nav="count"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v2h6V3"/><path d="m9 13 2 2 4-4"/></svg>Stock take</a>
+    <a href="#/reports" data-nav="reports"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Reports</a>
+    <a href="#/record" data-nav="record" class="cta"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Record stock</a>
+    <div class="foot">Interactive prototype · sample data saved in this browser.<br><button type="button" data-action="reset" style="border:none;background:none;padding:0;color:var(--brand);font-weight:700;font-size:12px;text-decoration:underline">Reset demo data</button></div>
+  </nav>
+
+  <main class="main" id="main" tabindex="-1">
+    <div class="content" id="view" aria-live="polite"></div>
+  </main>
+
+  <nav class="bottomnav" aria-label="Main">
+    <a href="#/home" data-nav="home"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Home</a>
+    <a href="#/products" data-nav="products"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/></svg>Products</a>
+    <a href="#/record" data-nav="record" aria-label="Record stock"><span class="fab"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></a>
+    <a href="#/count" data-nav="count"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v2h6V3"/><path d="m9 13 2 2 4-4"/></svg>Count</a>
+    <a href="#/reports" data-nav="reports"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Reports</a>
+  </nav>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<div id="modal"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------------------------------------------------------------- helpers
+  const $ = (s, el = document) => el.querySelector(s);
+  const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const money = (n) => 'N$ ' + Math.round(n).toLocaleString('en-ZA').replace(/,/g, ' ');
+  const money2 = (n) => 'N$ ' + n.toFixed(2);
+  const fmtNum = (n) => Math.round(n).toLocaleString('en-ZA').replace(/,/g, ' ');
+  const DAY = 86400000;
+  const LOCS = { main: 'Main Store', back: 'Back Storeroom' };
+  const TONES = [['--amber-tint', '--amber'], ['--brand-tint', '--brand'], ['--blue-tint', '--blue'], ['--purple-tint', '--purple']];
+  const STORE_KEY = 'kwiq-stock-v1';
+
+  function timeAgo(t) {
+    const d = Date.now() - t;
+    if (d < 60000) return 'just now';
+    if (d < 3600000) return Math.floor(d / 60000) + ' min ago';
+    const date = new Date(t), now = new Date();
+    const hm = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    if (date.toDateString() === now.toDateString()) return 'Today, ' + hm;
+    if (date.toDateString() === new Date(Date.now() - DAY).toDateString()) return 'Yesterday, ' + hm;
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + hm;
+  }
+  const initials = (name) => (name.split(/\s+/).filter((w) => /^[A-Za-z]/.test(w)).slice(0, 2).map((w) => w[0]).join('') || name.slice(0, 2)).toUpperCase();
+  const tone = (id) => TONES[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % TONES.length];
+  const thumb = (p, size) => {
+    const t = tone(p.id);
+    const s = size ? `width:${size}px;height:${size}px;font-size:${Math.round(size * 0.3)}px;` : '';
+    return `<span class="thumb" style="${s}background:var(${t[0]});color:var(${t[1]})">${esc(initials(p.name))}</span>`;
+  };
+  const icon = {
+    in: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m18 13-6 6-6-6"/></svg>',
+    out: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>',
+    adj: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="m9 13 2 2 4-4"/></svg>',
+    tr: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3h4v4"/><path d="M21 3 14 10"/><path d="M7 21H3v-4"/><path d="m3 21 7-7"/></svg>',
+    search: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
+    scan: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8v8M11 8v8M15 8v8M18 8v8"/></svg>',
+    back: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>',
+    plus: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+    minus: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>',
+    check: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
+    close: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    download: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>'
+  };
+
+  // ---------------------------------------------------------------- data
+  function seed() {
+    const catalog = [
+      ['Cooking Oil 2L', 'Grocery', 64.99, 51.2, 50, 9, 0, 'Namib Wholesalers'],
+      ['Maize Meal 10kg', 'Grocery', 119.99, 96.5, 40, 17, 0, 'Namib Mills Distribution'],
+      ['Sugar Brown 2kg', 'Grocery', 42.5, 33.9, 40, 21, 0, 'Namib Wholesalers'],
+      ['Rice Long Grain 2kg', 'Grocery', 46.99, 36.4, 30, 64, 24, 'Coastal Foods'],
+      ['Baked Beans 410g', 'Grocery', 18.99, 13.1, 36, 46, 12, 'Coastal Foods'],
+      ['Pasta Spaghetti 500g', 'Grocery', 21.99, 15.8, 30, 22, 0, 'Coastal Foods'],
+      ['Long Life Milk 1L', 'Dairy', 21.99, 16.75, 48, 64, 36, 'Kalahari Dairy'],
+      ['Butter 500g', 'Dairy', 69.99, 55.0, 20, 31, 0, 'Kalahari Dairy'],
+      ['Cheddar Cheese 400g', 'Dairy', 84.99, 66.2, 15, 0, 0, 'Kalahari Dairy'],
+      ['Fruit Juice 1L', 'Beverages', 24.99, 18.3, 40, 56, 24, 'Etosha Beverages'],
+      ['Still Water 1.5L', 'Beverages', 12.99, 8.6, 60, 140, 96, 'Etosha Beverages'],
+      ['Cola 2L', 'Beverages', 27.99, 21.4, 48, 38, 0, 'Etosha Beverages'],
+      ['Dishwashing Liquid 750ml', 'Household', 29.99, 21.9, 30, 0, 0, 'CleanCo Supplies'],
+      ['Bath Soap 175g', 'Household', 14.99, 9.8, 60, 132, 48, 'CleanCo Supplies'],
+      ['Toilet Paper 9-pack', 'Household', 79.99, 61.0, 20, 26, 10, 'CleanCo Supplies'],
+      ['Washing Powder 2kg', 'Household', 89.99, 70.3, 18, 0, 6, 'CleanCo Supplies']
+    ];
+    const prefix = { Grocery: 'GRC', Dairy: 'DRY', Beverages: 'BEV', Household: 'HSH' };
+    const products = catalog.map((c, i) => ({
+      id: 'p' + (i + 1),
+      name: c[0], cat: c[1], price: c[2], cost: c[3], min: c[4],
+      stock: { main: c[5], back: c[6] },
+      sku: prefix[c[1]] + '-' + String(100 + i * 7).padStart(4, '0'),
+      barcode: '600' + String(1234500000 + i * 97).slice(0, 10),
+      supplier: c[7]
+    }));
+    // Deterministic movement history for the last 35 days.
+    let s = 7;
+    const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+    const users = ['Ndapewa', 'Peter', 'Selma', 'You'];
+    const movements = [];
+    let grv = 1040, mid = 1;
+    const now = Date.now();
+    for (let d = 34; d >= 0; d--) {
+      const dayStart = now - d * DAY;
+      products.forEach((p) => {
+        const daily = p.min / 7;
+        if (rnd() < 0.8) {
+          const q = Math.max(1, Math.round(daily * (0.4 + rnd() * 1.3)));
+          movements.push({ id: 'm' + mid++, pid: p.id, type: 'issue', delta: -q, loc: 'main', ref: 'Sale · Till ' + (1 + Math.floor(rnd() * 3)), user: users[Math.floor(rnd() * 3)], at: dayStart - (1 + Math.floor(rnd() * 9)) * 3600000 });
+        }
+        if (rnd() < 0.09) {
+          const q = Math.round(p.min * (1 + rnd()));
+          movements.push({ id: 'm' + mid++, pid: p.id, type: 'receive', delta: q, loc: rnd() < 0.7 ? 'main' : 'back', ref: 'GRV-' + grv++, user: users[3], at: dayStart - Math.floor(2 + rnd() * 6) * 3600000 });
+        }
+      });
+    }
+    movements.sort((a, b) => b.at - a.at);
+    return { products, movements, nextGrv: grv, nextId: mid, count: null };
+  }
+
+  let db;
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) { db = JSON.parse(raw); if (db && db.products && db.movements) return; }
+    } catch (e) { /* storage unavailable: run in memory */ }
+    db = seed();
+  }
+  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(db)); } catch (e) { /* ignore */ } }
+
+  const product = (id) => db.products.find((p) => p.id === id);
+  const onHand = (p) => p.stock.main + p.stock.back;
+  const status = (p) => (onHand(p) === 0 ? 'out' : onHand(p) < p.min ? 'low' : 'ok');
+  const statusBadge = (p) => {
+    const st = status(p);
+    return `<span class="badge b-${st}">${st === 'out' ? 'Out of stock' : st === 'low' ? 'Low stock' : 'In stock'}</span>`;
+  };
+  const reorderQty = (p) => Math.max(0, p.min * 2 - onHand(p));
+
+  function addMovement(m) {
+    m.id = 'm' + db.nextId++;
+    m.at = Date.now();
+    m.user = 'You';
+    db.movements.unshift(m);
+  }
+
+  // ---------------------------------------------------------------- UI plumbing
+  let toastTimer;
+  function toast(msg) {
+    const t = $('#toast');
+    t.innerHTML = icon.check + '<span>' + esc(msg) + '</span>';
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+  }
+  function openModal(html) {
+    $('#modal').innerHTML = `<div class="overlay" data-action="close-modal"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+    const first = $('#modal input, #modal select, #modal button');
+    if (first) first.focus();
+  }
+  function closeModal() { $('#modal').innerHTML = ''; }
+
+  // ---------------------------------------------------------------- views
+  const ui = { cat: 'All', q: '', sort: 'low', recType: 'receive', recPid: null, recQty: 1, period: 'week', countCat: 'All' };
+
+  function viewHome() {
+    const value = db.products.reduce((s, p) => s + onHand(p) * p.cost, 0);
+    const low = db.products.filter((p) => status(p) === 'low');
+    const out = db.products.filter((p) => status(p) === 'out');
+    const weekAgo = Date.now() - 7 * DAY;
+    const soldWeek = db.movements.filter((m) => m.type === 'issue' && m.at > weekAgo).reduce((s, m) => s - m.delta, 0);
+    const running = db.products.filter((p) => status(p) !== 'ok').sort((a, b) => onHand(a) / a.min - onHand(b) / b.min).slice(0, 5);
+    const recent = db.movements.slice(0, 6);
+    const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    return `
+      <div class="between">
+        <div class="stack" style="gap:2px"><span class="sub">${today}</span><h1>Main Store</h1></div>
+        <div class="row" style="gap:10px">
+          <a class="iconbtn mobile-only" href="#/products" aria-label="Search products">${icon.search}</a>
+          <span class="iconbtn" style="background:var(--brand);color:#fff;border:none;font-weight:800" aria-label="Signed in as you">You</span>
+        </div>
+      </div>
+      <section class="hero" aria-label="Stock summary">
+        <div class="between" style="align-items:flex-start">
+          <div class="stack" style="gap:4px"><span style="font-size:13px;color:var(--brand-on);font-weight:600">Stock value on hand (at cost)</span><span class="big">${money(value)}</span></div>
+          <span class="badge" style="background:#fff;color:var(--brand)">${fmtNum(soldWeek)} units sold · 7 days</span>
+        </div>
+        <div class="kpis">
+          <a href="#/products"><b>${db.products.length}</b><span>Products</span></a>
+          <a href="#/products?f=low"><b>${low.length}</b><span>Low stock</span></a>
+          <a href="#/products?f=out"><b>${out.length}</b><span>Out of stock</span></a>
+        </div>
+      </section>
+      <section class="actions" aria-label="Quick actions">
+        <a href="#/record?t=receive"><span style="background:var(--brand-tint);color:var(--brand)">${icon.in}</span>Receive</a>
+        <a href="#/record?t=issue"><span style="background:var(--out-tint);color:var(--out)">${icon.out}</span>Issue</a>
+        <a href="#/count"><span style="background:var(--blue-tint);color:var(--blue)">${icon.adj}</span>Stock take</a>
+        <a href="#/record?t=transfer"><span style="background:var(--purple-tint);color:var(--purple)">${icon.tr}</span>Transfer</a>
+      </section>
+      <div class="grid-cards">
+        <section class="stack">
+          <div class="between"><h2>Running low</h2><a href="#/reports" style="font-weight:700;font-size:14px">Reorder list</a></div>
+          <div class="card list">${running.length ? running.map(rowLow).join('') : '<div class="empty">Everything is above its minimum level.</div>'}</div>
+        </section>
+        <section class="stack">
+          <div class="between"><h2>Recent activity</h2><a href="#/reports" style="font-weight:700;font-size:14px">All movements</a></div>
+          <div class="card list">${recent.map((m) => rowMove(m, true)).join('')}</div>
+        </section>
+      </div>
+      <p class="notice mobile-only">Interactive prototype · sample data saved in this browser · <button type="button" data-action="reset">Reset demo data</button></p>`;
+  }
+
+  function rowLow(p) {
+    const pct = Math.min(100, Math.round((onHand(p) / p.min) * 100));
+    const col = status(p) === 'out' ? 'var(--bad)' : pct < 25 ? 'var(--out)' : '#E8890C';
+    return `<a href="#/product/${p.id}">${thumb(p)}
+      <span class="grow stack" style="gap:6px"><span class="name ellipsis">${esc(p.name)}</span><span class="bar"><span style="width:${Math.max(3, pct)}%;background:${col}"></span></span></span>
+      <span class="stack" style="gap:2px;align-items:flex-end"><span class="qty" style="color:${status(p) === 'out' ? 'var(--bad)' : 'var(--warn)'}">${onHand(p)}</span><span class="meta">min ${p.min}</span></span></a>`;
+  }
+
+  function rowMove(m, withName) {
+    const p = product(m.pid);
+    const kind = m.type === 'receive' ? ['in', 'var(--brand-tint)', 'var(--brand)', 'Received']
+      : m.type === 'issue' ? ['out', 'var(--out-tint)', 'var(--out)', 'Issued']
+      : m.type === 'transfer' ? ['tr', 'var(--purple-tint)', 'var(--purple)', 'Transfer']
+      : ['adj', 'var(--blue-tint)', 'var(--blue)', 'Adjusted'];
+    const title = withName && p ? esc(p.name) : esc(m.ref || kind[3]);
+    const sub = (withName ? esc(m.ref || kind[3]) + ' · ' : '') + esc(LOCS[m.loc] || '') + ' · ' + timeAgo(m.at) + ' · ' + esc(m.user);
+    const sign = m.delta > 0 ? '+' : m.delta < 0 ? '−' : '±';
+    const color = m.delta > 0 ? 'var(--brand)' : m.delta < 0 ? 'var(--out)' : 'var(--muted)';
+    const tag = p ? 'a href="#/product/' + p.id + '"' : 'div';
+    return `<${tag}><span class="thumb" style="width:38px;height:38px;border-radius:10px;background:${kind[1]};color:${kind[2]}">${icon[kind[0]]}</span>
+      <span class="grow stack" style="gap:1px"><span class="name ellipsis" style="font-size:14px">${title}</span><span class="meta ellipsis">${sub}</span></span>
+      <span class="qty" style="font-size:15px;color:${color}">${sign}${Math.abs(m.delta)}</span></${tag.split(' ')[0]}>`;
+  }
+
+  function viewProducts(params) {
+    if (params.f) { ui.filter = params.f; }
+    const cats = ['All', ...new Set(db.products.map((p) => p.cat))];
+    const q = ui.q.trim().toLowerCase();
+    let list = db.products.filter((p) => (ui.cat === 'All' || p.cat === ui.cat)
+      && (!ui.filter || status(p) === ui.filter)
+      && (!q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || p.barcode.includes(q)));
+    const sorts = {
+      low: (a, b) => onHand(a) / a.min - onHand(b) / b.min,
+      name: (a, b) => a.name.localeCompare(b.name),
+      value: (a, b) => onHand(b) * b.cost - onHand(a) * a.cost
+    };
+    list = list.sort(sorts[ui.sort]);
+    const filterLabel = ui.filter === 'low' ? 'Low stock' : ui.filter === 'out' ? 'Out of stock' : '';
+    return `
+      <div class="between"><h1>Products</h1><button class="btn primary" type="button" data-action="add-product">${icon.plus}New product</button></div>
+      <div class="row" style="gap:10px">
+        <label class="search">${icon.search}<span class="sr">Search products</span><input id="q" type="search" placeholder="Search name, SKU or barcode" value="${esc(ui.q)}" autocomplete="off"></label>
+        <button class="iconbtn" style="width:48px;height:48px;color:var(--brand)" type="button" data-action="scan-search" aria-label="Scan barcode">${icon.scan}</button>
+      </div>
+      <div class="chips" role="group" aria-label="Category">${cats.map((c) => `<button type="button" class="chip" aria-pressed="${c === ui.cat}" data-action="cat" data-v="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+      <div class="between sub">
+        <span>${list.length} product${list.length === 1 ? '' : 's'}${filterLabel ? ` · <button type="button" data-action="clear-filter" style="border:none;background:var(--warn-tint);color:var(--warn);font-weight:700;border-radius:999px;padding:3px 10px;font-size:12px">${filterLabel} ✕</button>` : ''}</span>
+        <label class="row" style="gap:6px">Sort
+          <select class="input" id="sort" style="height:36px;width:auto;font-size:13px;font-weight:700">
+            <option value="low"${ui.sort === 'low' ? ' selected' : ''}>Lowest stock</option>
+            <option value="name"${ui.sort === 'name' ? ' selected' : ''}>Name</option>
+            <option value="value"${ui.sort === 'value' ? ' selected' : ''}>Stock value</option>
+          </select></label>
+      </div>
+      <div class="card list" id="plist">${list.length ? list.map((p) => `
+        <a href="#/product/${p.id}">${thumb(p)}
+          <span class="grow stack" style="gap:3px"><span class="name ellipsis">${esc(p.name)}</span><span class="meta mono">${esc(p.sku)} · ${money2(p.price)}</span></span>
+          <span class="desktop-only meta" style="width:110px">${esc(p.cat)}</span>
+          <span class="stack" style="gap:4px;align-items:flex-end"><span class="qty">${onHand(p)}</span>${statusBadge(p)}</span>
+        </a>`).join('') : '<div class="empty">No products match your search.</div>'}</div>`;
+  }
+
+  function viewProduct(id) {
+    const p = product(id);
+    if (!p) return `<div class="card empty">This product no longer exists. <a href="#/products">Back to products</a></div>`;
+    const moves = db.movements.filter((m) => m.pid === p.id).slice(0, 12);
+    const st = status(p);
+    const color = st === 'out' ? 'var(--bad)' : st === 'low' ? 'var(--warn)' : 'var(--ink)';
+    return `
+      <div class="between">
+        <a class="iconbtn" href="#/products" aria-label="Back to products">${icon.back}</a>
+        <span style="font-weight:800">Product</span>
+        <button class="iconbtn" type="button" data-action="edit-min" data-id="${p.id}" aria-label="Edit minimum level"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+      </div>
+      <div class="grid-cards">
+        <section class="card pad stack" style="gap:14px">
+          <div class="row" style="gap:14px">${thumb(p, 60)}
+            <div class="stack grow" style="gap:4px"><span style="font-size:20px;font-weight:800;letter-spacing:-.3px">${esc(p.name)}</span>
+              <span class="meta mono">${esc(p.sku)} · ${esc(p.barcode)}</span><span>${statusBadge(p)}</span></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+            <div style="background:var(--ground);border-radius:12px;padding:10px"><div class="sub">On hand</div><div class="qty" style="font-size:24px;color:${color}">${onHand(p)}</div></div>
+            <div style="background:var(--ground);border-radius:12px;padding:10px"><div class="sub">Minimum</div><div class="qty" style="font-size:24px">${p.min}</div></div>
+            <div style="background:var(--ground);border-radius:12px;padding:10px"><div class="sub">Reorder</div><div class="qty" style="font-size:24px;color:var(--brand)">${reorderQty(p) ? '+' + reorderQty(p) : '—'}</div></div>
+          </div>
+          <div class="grid2" style="font-size:14px">
+            <div class="stack" style="gap:2px"><span class="meta">Selling price</span><b>${money2(p.price)}</b></div>
+            <div class="stack" style="gap:2px"><span class="meta">Cost price</span><b>${money2(p.cost)}</b></div>
+            <div class="stack" style="gap:2px"><span class="meta">Category</span><b>${esc(p.cat)}</b></div>
+            <div class="stack" style="gap:2px"><span class="meta">Supplier</span><b>${esc(p.supplier)}</b></div>
+          </div>
+          <div class="stack" style="gap:8px"><h2 style="font-size:15px">Stock by location</h2>
+            <div class="card list">
+              <div><span class="grow name" style="font-size:14px">${LOCS.main}</span><span class="qty">${p.stock.main}</span></div>
+              <div><span class="grow name" style="font-size:14px">${LOCS.back}</span><span class="qty">${p.stock.back}</span></div>
+            </div>
+          </div>
+          <div class="grid2">
+            <a class="btn" href="#/record?t=issue&p=${p.id}">${icon.out}Issue</a>
+            <a class="btn primary" href="#/record?t=receive&p=${p.id}">${icon.in}Receive</a>
+          </div>
+        </section>
+        <section class="stack">
+          <h2>Movement history</h2>
+          <div class="card list">${moves.length ? moves.map((m) => rowMove(m, false)).join('') : '<div class="empty">No movements yet.</div>'}</div>
+        </section>
+      </div>`;
+  }
+
+  function viewRecord(params) {
+    if (params.t) ui.recType = params.t;
+    if (params.p) ui.recPid = params.p;
+    if (!ui.recPid || !product(ui.recPid)) ui.recPid = db.products[0].id;
+    const p = product(ui.recPid);
+    const types = [['receive', 'Receive'], ['issue', 'Issue'], ['adjust', 'Adjust'], ['transfer', 'Transfer']];
+    const t = ui.recType;
+    const refLabel = { receive: 'GRV / invoice no.', issue: 'Reason', adjust: 'Reason', transfer: 'Note' }[t];
+    const refPh = { receive: 'GRV-' + db.nextGrv, issue: 'Sale, damaged, expired…', adjust: 'Recount, correction…', transfer: 'Restock shelves' }[t];
+    return `
+      <div class="between">
+        <a class="iconbtn" href="#/home" aria-label="Close">${icon.close}</a>
+        <h1 style="font-size:20px">Record stock</h1>
+        <span style="width:44px"></span>
+      </div>
+      <form id="recForm" class="stack" style="gap:16px;max-width:620px;width:100%;margin:0 auto" novalidate>
+        <div class="seg" role="radiogroup" aria-label="Movement type" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+          ${types.map(([id, l]) => `<button type="button" role="radio" aria-checked="${id === t}" data-action="rec-type" data-v="${id}">${l}</button>`).join('')}
+        </div>
+        <label class="field">Product
+          <select class="input" id="recPid">${db.products.slice().sort((a, b) => a.name.localeCompare(b.name)).map((x) => `<option value="${x.id}"${x.id === p.id ? ' selected' : ''}>${esc(x.name)} — ${onHand(x)} on hand</option>`).join('')}</select>
+        </label>
+        <div class="card pad stack" style="gap:14px;align-items:center">
+          <span class="sub" id="qtyLabel">${t === 'adjust' ? 'Counted quantity' : 'Quantity'}</span>
+          <div class="stepper">
+            <button type="button" data-action="qty" data-v="-1" aria-label="Decrease quantity">${icon.minus}</button>
+            <label><span class="sr">Quantity</span><input id="recQty" type="number" inputmode="numeric" min="0" value="${ui.recQty}"></label>
+            <button type="button" class="plus" data-action="qty" data-v="1" aria-label="Increase quantity" style="color:#fff">${icon.plus}</button>
+          </div>
+          <div class="quick">${[1, 6, 12, 24].map((n) => `<button type="button" data-action="qty" data-v="${n}">+${n}</button>`).join('')}</div>
+          <div class="between" style="width:100%;padding-top:12px;border-top:1px solid var(--line-soft);font-size:14px">
+            <span class="sub" id="balLabel"></span><span class="mono" style="font-weight:600" id="balance"></span>
+          </div>
+          <div class="err" id="recErr" role="alert"></div>
+        </div>
+        <div class="grid2">
+          <label class="field">${t === 'transfer' ? 'From' : 'Location'}
+            <select class="input" id="recLoc"><option value="main">${LOCS.main}</option><option value="back">${LOCS.back}</option></select></label>
+          ${t === 'transfer'
+            ? `<label class="field">To<select class="input" id="recTo"><option value="back">${LOCS.back}</option><option value="main">${LOCS.main}</option></select></label>`
+            : `<label class="field">${refLabel}<input class="input" id="recRef" type="text" placeholder="${esc(refPh)}"></label>`}
+        </div>
+        <button class="btn primary" type="submit" style="height:52px;font-size:16px">${icon.check}Save ${types.find((x) => x[0] === t)[1].toLowerCase()}</button>
+      </form>`;
+  }
+
+  function recPreview() {
+    const f = $('#recForm'); if (!f) return;
+    const p = product($('#recPid').value);
+    const qty = Math.max(0, parseInt($('#recQty').value, 10) || 0);
+    ui.recQty = qty; ui.recPid = p.id;
+    const loc = $('#recLoc').value;
+    const t = ui.recType;
+    let label, before, after, err = '';
+    if (t === 'transfer') {
+      const to = $('#recTo').value;
+      label = LOCS[loc] + ' → ' + LOCS[to];
+      before = p.stock[loc]; after = before - qty;
+      if (loc === to) err = 'Choose two different locations.';
+      else if (after < 0) err = 'Only ' + before + ' available at ' + LOCS[loc] + '.';
+    } else {
+      label = 'New balance at ' + LOCS[loc];
+      before = p.stock[loc];
+      after = t === 'receive' ? before + qty : t === 'issue' ? before - qty : qty;
+      if (t === 'issue' && after < 0) err = 'Only ' + before + ' available at ' + LOCS[loc] + '.';
+    }
+    if (qty === 0 && t !== 'adjust') err = err || 'Enter a quantity above zero.';
+    $('#balLabel').textContent = label;
+    $('#balance').innerHTML = before + ' → <span style="color:' + (after < 0 ? 'var(--bad)' : 'var(--brand)') + '">' + after + '</span>';
+    $('#recErr').textContent = err;
+    f.querySelector('[type=submit]').disabled = !!err;
+  }
+
+  function submitRecord() {
+    const p = product($('#recPid').value);
+    const qty = Math.max(0, parseInt($('#recQty').value, 10) || 0);
+    const loc = $('#recLoc').value;
+    const t = ui.recType;
+    if (t === 'transfer') {
+      const to = $('#recTo').value;
+      if (loc === to || qty <= 0 || p.stock[loc] < qty) return;
+      p.stock[loc] -= qty; p.stock[to] += qty;
+      addMovement({ pid: p.id, type: 'transfer', delta: -qty, loc, ref: 'To ' + LOCS[to] });
+      addMovement({ pid: p.id, type: 'transfer', delta: qty, loc: to, ref: 'From ' + LOCS[loc] });
+      toast('Moved ' + qty + ' × ' + p.name + ' to ' + LOCS[to]);
+    } else {
+      const ref = ($('#recRef').value || '').trim();
+      let delta;
+      if (t === 'receive') { if (qty <= 0) return; delta = qty; }
+      else if (t === 'issue') { if (qty <= 0 || p.stock[loc] < qty) return; delta = -qty; }
+      else { delta = qty - p.stock[loc]; }
+      p.stock[loc] += delta;
+      const refText = ref || (t === 'receive' ? 'GRV-' + db.nextGrv : t === 'issue' ? 'Issued' : 'Stock adjustment');
+      if (t === 'receive' && !ref) db.nextGrv++;
+      addMovement({ pid: p.id, type: t, delta, loc, ref: refText });
+      toast(t === 'receive' ? 'Received ' + qty + ' × ' + p.name : t === 'issue' ? 'Issued ' + qty + ' × ' + p.name : p.name + ' set to ' + qty + ' (' + (delta >= 0 ? '+' : '−') + Math.abs(delta) + ')');
+    }
+    ui.recQty = 1;
+    save();
+    location.hash = '#/product/' + p.id;
+  }
+
+  function viewCount() {
+    const c = db.count;
+    if (!c) {
+      const cats = ['All', ...new Set(db.products.map((p) => p.cat))];
+      const last = db.movements.find((m) => m.type === 'adjust');
+      return `
+        <div class="stack" style="gap:4px"><span class="sub">Stock take · Main Store</span><h1>Start a stock take</h1></div>
+        <div class="card pad stack" style="gap:14px;max-width:620px">
+          <p style="margin:0;font-size:15px;line-height:1.55;color:var(--muted)">Count what is physically on the shelves. Kwiq Stock compares your counts with the system and posts any differences as adjustments when you finish.</p>
+          <div class="stack" style="gap:8px"><span class="sub">What do you want to count?</span>
+            <div class="chips" role="group" aria-label="Count scope">${cats.map((x) => `<button type="button" class="chip" aria-pressed="${x === ui.countCat}" data-action="count-cat" data-v="${esc(x)}">${esc(x === 'All' ? 'Everything' : x)}</button>`).join('')}</div>
+          </div>
+          <span class="meta">${db.products.filter((p) => ui.countCat === 'All' || p.cat === ui.countCat).length} products · Main Store shelves</span>
+          <button class="btn primary" type="button" data-action="count-start" style="height:52px">Start counting</button>
+          ${last ? `<span class="meta">Last adjustment: ${timeAgo(last.at)}</span>` : ''}
+        </div>`;
+    }
+    const items = c.items.map((id) => product(id)).filter(Boolean);
+    const done = items.filter((p) => c.counts[p.id] != null);
+    const varianceItems = done.filter((p) => c.counts[p.id] !== p.stock.main);
+    const pct = items.length ? Math.round((done.length / items.length) * 100) : 0;
+    return `
+      <div class="between">
+        <div class="stack" style="gap:4px"><span class="sub">Stock take · ${esc(c.scope === 'All' ? 'All products' : c.scope)}</span><h1>Counting</h1></div>
+        <button class="btn" type="button" data-action="count-cancel">Discard</button>
+      </div>
+      <div class="grid-cards">
+        <div class="stack" style="gap:14px">
+          <div class="card pad stack" style="gap:10px">
+            <div class="between" style="font-size:14px"><b>${done.length} of ${items.length} counted</b><span class="sub">${pct}%</span></div>
+            <div class="bar" style="height:8px"><span style="width:${pct}%;background:var(--brand)"></span></div>
+            <div class="legend"><span><i style="background:var(--brand)"></i>${done.length - varianceItems.length} match</span><span><i style="background:var(--out)"></i>${varianceItems.length} with variance</span></div>
+          </div>
+          <button class="scan" type="button" data-action="scan-count" id="scanBtn"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i><span class="laser"></span>${icon.scan}<span id="scanText">Tap to scan the next item</span></button>
+          <button class="btn primary" type="button" data-action="count-finish" ${done.length ? '' : 'disabled'} style="height:52px">Finish &amp; post ${varianceItems.length} adjustment${varianceItems.length === 1 ? '' : 's'}</button>
+        </div>
+        <div class="stack">
+          <div class="between"><h2>Items</h2><span class="sub">System → Counted</span></div>
+          <div class="card list" id="countList">${items.map((p) => countRow(p, c)).join('')}</div>
+        </div>
+      </div>`;
+  }
+
+  function countRow(p, c) {
+    const v = c.counts[p.id];
+    const has = v != null;
+    const diff = has ? v - p.stock.main : 0;
+    const varTxt = !has ? '—' : diff === 0 ? 'OK' : (diff > 0 ? '+' : '−') + Math.abs(diff);
+    const varCol = !has ? 'var(--muted)' : diff === 0 ? 'var(--brand)' : 'var(--out)';
+    return `<div data-row="${p.id}" class="${c.last === p.id ? 'row hl' : ''}">
+      <span class="grow stack" style="gap:2px"><span class="name ellipsis" style="font-size:14px">${esc(p.name)}</span><span class="meta mono">${esc(p.sku)} · system ${p.stock.main}</span></span>
+      <span class="counter">
+        <button type="button" data-action="cnt" data-id="${p.id}" data-v="-1" aria-label="Remove one ${esc(p.name)}">−</button>
+        <label><span class="sr">Counted ${esc(p.name)}</span><input type="number" min="0" inputmode="numeric" data-cnt="${p.id}" value="${has ? v : ''}" placeholder="–"></label>
+        <button type="button" class="plus" data-action="cnt" data-id="${p.id}" data-v="1" aria-label="Add one ${esc(p.name)}">+</button>
+      </span>
+      <span class="mono" style="width:40px;text-align:right;font-weight:600;font-size:13px;color:${varCol}">${varTxt}</span>
+    </div>`;
+  }
+
+  function viewReports() {
+    const now = new Date();
+    const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    let buckets;
+    if (ui.period === 'week') {
+      buckets = Array.from({ length: 7 }, (_, i) => {
+        const s = startToday - (6 - i) * DAY;
+        return { s, e: s + DAY, label: new Date(s).toLocaleDateString('en-GB', { weekday: 'short' }) };
+      });
+    } else {
+      buckets = Array.from({ length: 5 }, (_, i) => {
+        const e = startToday + DAY - (4 - i) * 7 * DAY;
+        return { s: e - 7 * DAY, e, label: new Date(e - DAY).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) };
+      });
+    }
+    const from = buckets[0].s;
+    const inPeriod = db.movements.filter((m) => m.at >= from && m.type !== 'transfer');
+    let inU = 0, inV = 0, outU = 0, outV = 0;
+    const sales = {};
+    inPeriod.forEach((m) => {
+      const p = product(m.pid); if (!p) return;
+      if (m.type === 'receive') { inU += m.delta; inV += m.delta * p.cost; }
+      if (m.type === 'issue') { outU -= m.delta; outV -= m.delta * p.price; sales[p.id] = (sales[p.id] || 0) - m.delta; }
+    });
+    buckets.forEach((b) => {
+      b.in = 0; b.out = 0;
+      inPeriod.forEach((m) => {
+        if (m.at < b.s || m.at >= b.e) return;
+        if (m.type === 'receive') b.in += m.delta;
+        if (m.type === 'issue') b.out -= m.delta;
+      });
+    });
+    const max = Math.max(1, ...buckets.map((b) => Math.max(b.in, b.out)));
+    const h = (v) => Math.round((v / max) * 136);
+    const top = Object.entries(sales).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const topMax = top.length ? top[0][1] : 1;
+    const reorder = db.products.filter((p) => status(p) !== 'ok').sort((a, b) => onHand(a) - onHand(b));
+    return `
+      <div class="between"><h1>Reports</h1><button class="btn" type="button" data-action="export">${icon.download}Export CSV</button></div>
+      <div class="seg" role="radiogroup" aria-label="Period" style="grid-template-columns:repeat(2,minmax(0,1fr));max-width:360px">
+        <button type="button" role="radio" aria-checked="${ui.period === 'week'}" data-action="period" data-v="week">Last 7 days</button>
+        <button type="button" role="radio" aria-checked="${ui.period === 'month'}" data-action="period" data-v="month">Last 5 weeks</button>
+      </div>
+      <div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+        <div class="card pad stack" style="gap:4px"><span class="sub">Stock in</span><span class="qty" style="font-size:24px;color:var(--brand)">${fmtNum(inU)}</span><span class="meta">units · ${money(inV)} at cost</span></div>
+        <div class="card pad stack" style="gap:4px"><span class="sub">Stock out</span><span class="qty" style="font-size:24px;color:var(--out)">${fmtNum(outU)}</span><span class="meta">units · ${money(outV)} at selling price</span></div>
+      </div>
+      <div class="grid-cards">
+        <section class="card pad stack" style="gap:14px">
+          <div class="between"><h2 style="font-size:15px">Movement</h2><div class="legend"><span><i style="background:var(--brand)"></i>In</span><span><i style="background:#F0A36B"></i>Out</span></div></div>
+          <div class="chart" style="grid-template-columns:repeat(${buckets.length},minmax(0,1fr))">
+            ${buckets.map((b) => `<div class="col"><div class="bars"><span title="In: ${b.in}" style="height:${h(b.in)}px;background:var(--brand)"></span><span title="Out: ${b.out}" style="height:${h(b.out)}px;background:#F0A36B"></span></div><span class="lbl">${b.label}</span></div>`).join('')}
+          </div>
+          <span class="sr">${buckets.map((b) => b.label + ': in ' + b.in + ', out ' + b.out).join('; ')}</span>
+        </section>
+        <section class="card pad stack" style="gap:12px">
+          <h2 style="font-size:15px">Top sellers</h2>
+          ${top.length ? top.map(([id, n]) => { const p = product(id); return `<a href="#/product/${id}" class="stack" style="gap:6px;color:var(--ink)"><span class="between" style="font-size:14px"><b class="ellipsis">${esc(p.name)}</b><span class="mono" style="font-weight:600">${n}</span></span><span class="bar"><span style="width:${Math.round((n / topMax) * 100)}%;background:var(--brand)"></span></span></a>`; }).join('') : '<div class="empty">No sales in this period.</div>'}
+        </section>
+      </div>
+      <section class="stack">
+        <div class="between"><h2>Reorder now</h2><span class="badge b-out">${reorder.length} item${reorder.length === 1 ? '' : 's'}</span></div>
+        <div class="card list">${reorder.length ? reorder.map((p) => `<a href="#/product/${p.id}">${thumb(p)}<span class="grow stack" style="gap:2px"><span class="name ellipsis" style="font-size:14px">${esc(p.name)}</span><span class="meta">${onHand(p)} on hand · min ${p.min} · ${esc(p.supplier)}</span></span><span class="stack" style="gap:2px;align-items:flex-end"><span class="qty" style="color:var(--brand)">+${reorderQty(p)}</span><span class="meta">${money(reorderQty(p) * p.cost)}</span></span></a>`).join('') : '<div class="empty">Nothing to reorder. All products are above minimum.</div>'}</div>
+      </section>`;
+  }
+
+  // ---------------------------------------------------------------- router
+  function parse() {
+    const h = location.hash.replace(/^#\/?/, '') || 'home';
+    const [path, qs] = h.split('?');
+    const parts = path.split('/');
+    const params = {};
+    (qs || '').split('&').filter(Boolean).forEach((kv) => { const [k, v] = kv.split('='); params[decodeURIComponent(k)] = decodeURIComponent(v || ''); });
+    return { route: parts[0], id: parts[1], params };
+  }
+
+  function render(keepScroll) {
+    const { route, id, params } = parse();
+    if (route !== 'products') ui.filter = null;
+    let html;
+    switch (route) {
+      case 'products': html = viewProducts(params); break;
+      case 'product': html = viewProduct(id); break;
+      case 'record': html = viewRecord(params); break;
+      case 'count': html = viewCount(); break;
+      case 'reports': html = viewReports(); break;
+      default: html = viewHome();
+    }
+    $('#view').innerHTML = html;
+    const navKey = route === 'product' ? 'products' : (['products', 'record', 'count', 'reports'].includes(route) ? route : 'home');
+    document.querySelectorAll('[data-nav]').forEach((a) => {
+      const on = a.dataset.nav === navKey;
+      a.classList.toggle('active', on);
+      if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    document.title = 'Kwiq Stock — ' + ({ products: 'Products', product: 'Product', record: 'Record stock', count: 'Stock take', reports: 'Reports' }[route] || 'Home');
+    if (route === 'record') recPreview();
+    if (!keepScroll) window.scrollTo(0, 0);
+  }
+
+  // ---------------------------------------------------------------- events
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-action]');
+    if (!el) return;
+    const a = el.dataset.action, v = el.dataset.v;
+    if (a === 'close-modal') { if (e.target === el) closeModal(); return; }
+    if (a === 'cat') { ui.cat = v; render(true); }
+    if (a === 'clear-filter') { ui.filter = null; location.hash = '#/products'; }
+    if (a === 'scan-search') {
+      const p = db.products[Math.floor(Math.random() * db.products.length)];
+      toast('Scanned ' + p.barcode);
+      location.hash = '#/product/' + p.id;
+    }
+    if (a === 'rec-type') { ui.recType = v; render(true); }
+    if (a === 'qty') {
+      const inp = $('#recQty');
+      const n = parseInt(v, 10);
+      inp.value = Math.max(0, (parseInt(inp.value, 10) || 0) + n);
+      recPreview();
+    }
+    if (a === 'count-cat') { ui.countCat = v; render(true); }
+    if (a === 'count-start') {
+      const items = db.products.filter((p) => ui.countCat === 'All' || p.cat === ui.countCat).map((p) => p.id);
+      db.count = { scope: ui.countCat, items, counts: {}, started: Date.now(), last: null };
+      save(); render();
+    }
+    if (a === 'count-cancel') { db.count = null; save(); render(); toast('Stock take discarded'); }
+    if (a === 'cnt') {
+      const c = db.count; const cur = c.counts[el.dataset.id];
+      c.counts[el.dataset.id] = Math.max(0, (cur == null ? 0 : cur) + parseInt(v, 10));
+      c.last = el.dataset.id; save(); render(true);
+    }
+    if (a === 'scan-count') {
+      const c = db.count;
+      const next = c.items.find((id) => c.counts[id] == null) || c.items[Math.floor(Math.random() * c.items.length)];
+      const btn = $('#scanBtn'); btn.classList.add('on'); $('#scanText').textContent = 'Scanning…';
+      setTimeout(() => {
+        const p = product(next);
+        const cur = c.counts[next];
+        c.counts[next] = (cur == null ? 0 : cur) + 1; c.last = next; save(); render(true);
+        toast('Scanned ' + p.name + ' (+1)');
+        const row = document.querySelector('[data-row="' + next + '"]'); if (row) row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }, 700);
+    }
+    if (a === 'count-finish') {
+      const c = db.count; let posted = 0;
+      Object.entries(c.counts).forEach(([id, n]) => {
+        const p = product(id); if (!p) return;
+        const delta = n - p.stock.main;
+        if (delta !== 0) { p.stock.main = n; addMovement({ pid: id, type: 'adjust', delta, loc: 'main', ref: 'Stock take' }); posted++; }
+      });
+      const counted = Object.keys(c.counts).length;
+      db.count = null; save();
+      toast('Stock take posted: ' + counted + ' counted, ' + posted + ' adjusted');
+      location.hash = '#/reports';
+    }
+    if (a === 'period') { ui.period = v; render(true); }
+    if (a === 'export') exportCsv();
+    if (a === 'reset') {
+      if (confirmReset()) { try { localStorage.removeItem(STORE_KEY); } catch (err) { /* ignore */ } db = seed(); ui.recPid = null; render(); toast('Demo data reset'); }
+    }
+    if (a === 'add-product') openAddProduct();
+    if (a === 'edit-min') openEditMin(el.dataset.id);
+  });
+
+  function confirmReset() { return window.confirm('Reset all demo data? Your recorded movements will be cleared.'); }
+
+  document.addEventListener('input', (e) => {
+    if (e.target.id === 'q') {
+      ui.q = e.target.value;
+      const pos = e.target.selectionStart;
+      render(true);
+      const q = $('#q'); q.focus(); try { q.setSelectionRange(pos, pos); } catch (err) { /* ignore */ }
+    }
+    if (e.target.id === 'recQty') recPreview();
+    if (e.target.dataset && e.target.dataset.cnt) {
+      const id = e.target.dataset.cnt; const c = db.count;
+      const val = e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0);
+      c.counts[id] = val; if (val == null) delete c.counts[id];
+      c.last = id; save();
+    }
+  });
+  document.addEventListener('change', (e) => {
+    if (e.target.id === 'sort') { ui.sort = e.target.value; render(true); }
+    if (['recPid', 'recLoc', 'recTo'].includes(e.target.id)) recPreview();
+    if (e.target.dataset && e.target.dataset.cnt) render(true);
+  });
+  document.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (e.target.id === 'recForm') submitRecord();
+    if (e.target.id === 'addForm') saveNewProduct(e.target);
+    if (e.target.id === 'minForm') saveMin(e.target);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#modal').innerHTML) closeModal(); });
+
+  function openAddProduct() {
+    openModal(`
+      <div class="between"><h2>New product</h2><button class="iconbtn" type="button" data-action="close-modal-btn" aria-label="Close">${icon.close}</button></div>
+      <form id="addForm" class="stack" style="gap:12px" novalidate>
+        <label class="field">Product name<input class="input" name="name" required maxlength="60" placeholder="e.g. Peanut Butter 400g"></label>
+        <div class="grid2">
+          <label class="field">Category<select class="input" name="cat">${[...new Set(db.products.map((p) => p.cat))].map((c) => `<option>${esc(c)}</option>`).join('')}</select></label>
+          <label class="field">Minimum level<input class="input" name="min" type="number" min="0" value="20"></label>
+          <label class="field">Selling price (N$)<input class="input" name="price" type="number" min="0" step="0.01" required placeholder="0.00"></label>
+          <label class="field">Cost price (N$)<input class="input" name="cost" type="number" min="0" step="0.01" required placeholder="0.00"></label>
+          <label class="field">Opening stock<input class="input" name="qty" type="number" min="0" value="0"></label>
+          <label class="field">Supplier<input class="input" name="supplier" maxlength="40" placeholder="Supplier name"></label>
+        </div>
+        <div class="err" id="addErr" role="alert"></div>
+        <button class="btn primary" type="submit" style="height:50px">Add product</button>
+      </form>`);
+  }
+  document.addEventListener('click', (e) => { if (e.target.closest('[data-action="close-modal-btn"]')) closeModal(); });
+
+  function saveNewProduct(f) {
+    const d = Object.fromEntries(new FormData(f));
+    const name = (d.name || '').trim();
+    const price = parseFloat(d.price), cost = parseFloat(d.cost);
+    if (!name) return ($('#addErr').textContent = 'Enter a product name.');
+    if (!(price > 0) || !(cost > 0)) return ($('#addErr').textContent = 'Enter selling and cost prices above zero.');
+    if (cost > price) return ($('#addErr').textContent = 'Cost price is higher than the selling price.');
+    const prefix = { Grocery: 'GRC', Dairy: 'DRY', Beverages: 'BEV', Household: 'HSH' }[d.cat] || 'GEN';
+    const n = db.products.length + 1;
+    const p = {
+      id: 'p' + Date.now().toString(36), name, cat: d.cat, price, cost, min: Math.max(0, parseInt(d.min, 10) || 0),
+      stock: { main: 0, back: 0 }, sku: prefix + '-' + String(100 + n * 7).padStart(4, '0'),
+      barcode: '600' + String(1234500000 + n * 97).slice(0, 10), supplier: (d.supplier || '').trim() || '—'
+    };
+    db.products.push(p);
+    const qty = Math.max(0, parseInt(d.qty, 10) || 0);
+    if (qty) { p.stock.main = qty; addMovement({ pid: p.id, type: 'receive', delta: qty, loc: 'main', ref: 'Opening stock' }); }
+    save(); closeModal(); toast(name + ' added');
+    location.hash = '#/product/' + p.id;
+  }
+
+  function openEditMin(id) {
+    const p = product(id);
+    openModal(`
+      <div class="between"><h2>Minimum stock level</h2><button class="iconbtn" type="button" data-action="close-modal-btn" aria-label="Close">${icon.close}</button></div>
+      <p style="margin:0;color:var(--muted);font-size:14px">${esc(p.name)} shows as low stock below this level.</p>
+      <form id="minForm" class="stack" data-id="${p.id}" style="gap:12px">
+        <label class="field">Minimum level<input class="input" name="min" type="number" min="0" value="${p.min}"></label>
+        <button class="btn primary" type="submit" style="height:50px">Save</button>
+      </form>`);
+  }
+  function saveMin(f) {
+    const p = product(f.dataset.id);
+    p.min = Math.max(0, parseInt(new FormData(f).get('min'), 10) || 0);
+    save(); closeModal(); render(true); toast('Minimum for ' + p.name + ' set to ' + p.min);
+  }
+
+  function exportCsv() {
+    const rows = [['Date', 'Product', 'SKU', 'Type', 'Quantity', 'Location', 'Reference', 'User']];
+    db.movements.forEach((m) => {
+      const p = product(m.pid); if (!p) return;
+      rows.push([new Date(m.at).toISOString(), p.name, p.sku, m.type, m.delta, LOCS[m.loc], m.ref, m.user]);
+    });
+    const csv = rows.map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    const link = document.createElement('a');
+    link.href = url; link.download = 'kwiq-stock-movements.csv';
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast('Exported ' + (rows.length - 1) + ' movements');
+  }
+
+  window.addEventListener('hashchange', () => render());
+  load();
+  render();
+})();
+</script>
+</body>
+</html>

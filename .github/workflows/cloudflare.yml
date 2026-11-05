@@ -16,6 +16,7 @@ jobs:
           for f in index.html style.css script.js favicon.svg Christian_Bwendo_CV.pdf; do
             if [ -f "$f" ]; then cp "$f" _site/; fi
           done
+          if [ -d kwiq-stock ]; then cp -r kwiq-stock _site/; fi
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
